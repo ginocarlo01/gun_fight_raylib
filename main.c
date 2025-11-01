@@ -3,18 +3,25 @@
 #include <math.h>
 #include <stdlib.h>
 
+/*==============================================================================
+    CONFIG
+==============================================================================*/
+
+static const Vector2 AIM_DIRECTIONS[3] = {
+    {1, 0},
+    {1, -1},
+    {1, 1}  
+};
+
+static const int INITIAL_AIM_INDEX = 0;
+static const int LENGTH_LINE_AIM = 30;
+
 typedef enum {
     ENTITY_PLAYER,
     ENTITY_BULLET,
     ENTITY_OBSTACLE,
     ENTITY_CPU
 } EntityType;
-
-const Vector2 AIM_DIRECTIONS[3] = {
-    {1, 0},   // horizontal
-    {1, -1},  // 45° para cima
-    {1, 1}    // 45° para baixo
-};
 
 typedef struct Entity Entity;
 
@@ -27,15 +34,13 @@ typedef struct Entity {
     Color color;
     int damage;
     int max_ammo;
-    int ammo;            // novo campo para balas do player
-    Entity *bullets;     // ponteiro para array de bullets
+    int ammo;            
+    Entity *bullets;     
     int life;
     bool enabled;
     int aim_index;
 } Entity;
 
-
-// Normaliza vetor
 void normalize(Vector2 *v) {
     float mag = sqrtf(v->x * v->x + v->y * v->y);
     if (mag != 0.0f) {
@@ -44,7 +49,6 @@ void normalize(Vector2 *v) {
     }
 }
 
-// Cria entidade
 Entity create_entity(EntityType type, Vector2 direction ,Vector2 position, Color color, float radius, float speed, int damage, int ammo, int life, bool enabled) {
     Entity e = {0};
     e.type = type;
@@ -58,7 +62,7 @@ Entity create_entity(EntityType type, Vector2 direction ,Vector2 position, Color
     e.max_ammo = ammo;
     e.life = life;
     e.enabled = enabled;
-    e.aim_index = 0;
+    e.aim_index = INITIAL_AIM_INDEX;
     return e;
 }
 
@@ -68,7 +72,7 @@ void spawn_bullet(Entity *entity) {
     Vector2 dir = AIM_DIRECTIONS[entity->aim_index];
     normalize(&dir);
 
-    float line_len = 30.0f;
+    float line_len = LENGTH_LINE_AIM;
 
     int index = entity->max_ammo - entity->ammo;
     entity->bullets[index].enabled = true;
