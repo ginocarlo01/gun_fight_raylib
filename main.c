@@ -14,7 +14,68 @@ static const Vector2 AIM_DIRECTIONS[3] = {
 };
 
 static const int INITIAL_AIM_INDEX = 0;
-static const int LENGTH_LINE_AIM = 30;
+static const int LENGTH_LINE_AIM = 40;
+static const size_t AIM_DIRECTIONS_LEN = sizeof(AIM_DIRECTIONS) / sizeof(AIM_DIRECTIONS[0]);
+static const float LIMIT_PLAYER_LEFT = 0.05f;
+static const float LIMIT_PLAYER_RIGHT = 0.30f;
+static const float LIMIT_OBSTACLE_LEFT = 0.30f;
+static const float LIMIT_OBSTACLE_RIGHT = 0.70f;
+static const float LIMIT_CPU_LEFT = 0.7f;
+static const float LIMIT_CPU_RIGHT = 0.95f;
+static const int SCREEN_WIDTH = 1920;
+static const int SCREEN_HEIGHT = 1080;
+static const char * GAME_TITLE = "Gun Fight";
+static const int TARGET_FPS = 240;
+
+static const float PLAYER_START_POSITION_X = LIMIT_PLAYER_LEFT * 5 * SCREEN_WIDTH;
+static const float PLAYER_START_POSITION_Y = SCREEN_HEIGHT * 0.5;
+static const Color PLAYER_COLOR = BLUE;
+static const int PLAYER_RADIUS = 20;
+static const int PLAYER_SPEED = 300;
+static const int PLAYER_DAMAGE = 0;
+static const int PLAYER_AMMO = 5;
+static const int PLAYER_LIFE = 1;
+//Entity player = create_entity(ENTITY_PLAYER, (Vector2){0,0}, (Vector2){70, SCREEN_HEIGHT/2}, BLUE, 20, 300, 0, 5, 1,true);
+
+static const Color PLAYER_BULLET_COLOR = GREEN;
+static const int PLAYER_BULLET_RADIUS = 10;
+static const int PLAYER_BULLET_SPEED = 400;
+static const int PLAYER_BULLET_DAMAGE = 1;
+
+static const float CPU_START_POSITION_X = SCREEN_WIDTH * 0.85f;
+static const float CPU_START_POSITION_Y = SCREEN_HEIGHT * 0.5;
+static const Color CPU_COLOR = RED;
+static const int CPU_RADIUS = 20;
+static const int CPU_SPEED = 200;
+static const int CPU_DAMAGE = 0;
+static const int CPU_AMMO = 15;
+static const int CPU_LIFE = 1;
+
+static const Color CPU_BULLET_COLOR = RED;
+static const int CPU_BULLET_RADIUS = 10;
+static const int CPU_BULLET_SPEED = 400;
+static const int CPU_BULLET_DAMAGE = 1;
+
+static const int QTY_OBSTACLES = 4;
+
+//default obstacle
+static const float OBSTACLE_START_POSITION_Y = SCREEN_HEIGHT * 0.5;
+static const Color OBSTACLE_COLOR = WHITE;
+static const int OBSTACLE_RADIUS = 20;
+static const int OBSTACLE_SPEED = 200;
+static const int OBSTACLE_DAMAGE = 0;
+
+//damage obstacle
+static const Color OBSTACLE_DAMAGE_COLOR = RED;
+static const int OBSTACLE_DAMAGE_RADIUS = 20;
+static const int OBSTACLE_DAMAGE_SPEED = 250;
+static const int OBSTACLE_DAMAGE_DAMAGE = 1;
+
+//healing obstacle
+static const Color OBSTACLE_HEALING_COLOR = GREEN;
+static const int OBSTACLE_HEALING_RADIUS = 20;
+static const int OBSTACLE_HEALING_SPEED = 200;
+static const int OBSTACLE_HEALING_DAMAGE = -1;
 
 typedef enum {
     ENTITY_PLAYER,
@@ -22,6 +83,7 @@ typedef enum {
     ENTITY_OBSTACLE,
     ENTITY_CPU
 } EntityType;
+
 
 typedef struct Entity Entity;
 
@@ -48,6 +110,7 @@ void normalize(Vector2 *v) {
         v->y /= mag;
     }
 }
+
 
 Entity create_entity(EntityType type, Vector2 direction ,Vector2 position, Color color, float radius, float speed, int damage, int ammo, int life, bool enabled) {
     Entity e = {0};
@@ -99,7 +162,7 @@ void update_bullet_check(Entity *entity, float *current_timer, float max_timer){
 
         //index
         entity->aim_index--;
-        if (entity->aim_index < 0) entity->aim_index = 2;
+        if (entity->aim_index < 0) entity->aim_index = AIM_DIRECTIONS_LEN - 1;
 
         //spawn
         spawn_bullet(entity);
@@ -126,7 +189,9 @@ void update_entity(Entity *entity) {
         if (entity->position.y < 0) entity->position.y = 0;
         if (entity->position.y > GetScreenHeight()) entity->position.y = GetScreenHeight();
 
-        float limitLeft  = 0.05f * GetScreenWidth();          float limitRight = 0.3f  * GetScreenWidth();  
+        float limitLeft  = LIMIT_PLAYER_LEFT * SCREEN_WIDTH;
+        float limitRight = LIMIT_PLAYER_RIGHT * SCREEN_WIDTH;
+
         if (entity->position.x < limitLeft)  entity->position.x = limitLeft;
         if (entity->position.x > limitRight) entity->position.x = limitRight;
     } else if (entity->type == ENTITY_CPU) {
@@ -134,17 +199,18 @@ void update_entity(Entity *entity) {
             entity->position.y = 0;
             entity->direction.y *= -1;
         }
-        
-        if (entity->position.y > GetScreenHeight()){
-            entity->position.y = GetScreenHeight();
+
+        if (entity->position.y > SCREEN_HEIGHT){
+            entity->position.y = SCREEN_HEIGHT;
             entity->direction.y *= -1;
         }
         
 
-        float limitLeft  = 0.7f * GetScreenWidth(); 
-        float limitRight = 0.95f  * GetScreenWidth();  
+        float limitLeft  = LIMIT_CPU_LEFT * SCREEN_WIDTH; 
+        float limitRight = LIMIT_CPU_RIGHT * SCREEN_WIDTH;  
         if (entity->position.x < limitLeft)  entity->position.x = limitLeft;
         if (entity->position.x > limitRight) entity->position.x = limitRight;
+
     } else if (entity->type == ENTITY_OBSTACLE) {
         if (entity->position.y < 0){
             entity->position.y = 0;
@@ -154,26 +220,20 @@ void update_entity(Entity *entity) {
         if (entity->position.y > GetScreenHeight()) {
             entity->position.y = GetScreenHeight();
             entity->direction.y *= -1;
-        }
-        
-    }
-
-    
+        }   
+    }    
 }
 
-    
 
-
-// Desenha entidade
 void draw_entity(Entity *e) {
     if (!e->enabled) return;
 
-    // Desenha a própria entity
     DrawCircleV(e->position, e->radius, e->color);
 
+    //TODO juntar em uma soh area
     if (e->type == ENTITY_PLAYER) {
-        float line_len = 40; // tamanho do retângulo de mira
-        for (int i = 0; i < 3; i++) {
+        float line_len = LENGTH_LINE_AIM; 
+        for (int i = 0; i < AIM_DIRECTIONS_LEN; i++) {
             Color col = (i == e->aim_index) ? YELLOW : GRAY;
             Vector2 end = { e->position.x + AIM_DIRECTIONS[i].x * line_len,
                             e->position.y + AIM_DIRECTIONS[i].y * line_len };
@@ -181,8 +241,8 @@ void draw_entity(Entity *e) {
             }
     }
     if (e->type == ENTITY_CPU) {
-        float line_len = 40; // tamanho do retângulo de mira
-        for (int i = 0; i < 3; i++) {
+        float line_len = LENGTH_LINE_AIM; 
+        for (int i = 0; i < AIM_DIRECTIONS_LEN; i++) {
             Color col = (i == e->aim_index) ? YELLOW : GRAY;
             Vector2 end = { e->position.x + AIM_DIRECTIONS[i].x * -1 * line_len,
                             e->position.y + AIM_DIRECTIONS[i].y * line_len };
@@ -235,48 +295,45 @@ void bullet_check_collision(Entity *bullet, Entity *hit_entity, Entity *parent) 
 
 
 int main(void) {
-    const int screenWidth = 960;
-    const int screenHeight = 540;
-    InitWindow(screenWidth, screenHeight, "Gun Fight");
-    SetTargetFPS(60);
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, GAME_TITLE);
+    SetTargetFPS(TARGET_FPS);
 
-    Entity player_bullets[5]; // array externo
-    Entity player = create_entity(ENTITY_PLAYER, (Vector2){0,0}, (Vector2){70, screenHeight/2}, BLUE, 20, 300, 0, 5, 1,true);
-    player.ammo = 5;
+    //PLAYER
+    Entity player = create_entity(ENTITY_PLAYER, (Vector2){0,0}, (Vector2){PLAYER_START_POSITION_X, PLAYER_START_POSITION_Y}, PLAYER_COLOR, PLAYER_RADIUS, PLAYER_SPEED, PLAYER_DAMAGE, PLAYER_AMMO, PLAYER_LIFE,true);
     //TODO checar se eh possivel otimizar
-    player.bullets = player_bullets;
-    for (int i = 0; i < player.ammo; i++) {
-        player.bullets[i] = create_entity(ENTITY_BULLET, (Vector2){0,0}, (Vector2){0,0}, RED, 10, 400, 1, 0, 0, false);
+    player.bullets = malloc(sizeof(Entity) * PLAYER_AMMO);
+    for (int i = 0; i < PLAYER_AMMO; i++) {
+        player.bullets[i] = create_entity(ENTITY_BULLET, (Vector2){0,0}, (Vector2){0,0}, PLAYER_BULLET_COLOR, PLAYER_BULLET_RADIUS, PLAYER_BULLET_SPEED, PLAYER_BULLET_DAMAGE, 0, 0, false);
     }
 
     //CPU
     //TODO verificar se eh possivel colocar em uma funcao
-    Entity cpu_bullets[5]; 
-    Entity cpu = create_entity(ENTITY_CPU, (Vector2){0,1}, (Vector2){screenWidth - 70, screenHeight/2}, RED, 20, 200, 0, 5, 1,true);
-    cpu.ammo = 5;
+    Entity cpu_bullets[15]; 
+    Entity cpu = create_entity(ENTITY_CPU, (Vector2){0,1}, (Vector2){CPU_START_POSITION_X, CPU_START_POSITION_Y}, CPU_COLOR, CPU_RADIUS, CPU_SPEED, CPU_DAMAGE, CPU_AMMO, CPU_LIFE, true);
+    cpu.ammo = 15;
     //TODO checar se eh possivel otimizar
     cpu.bullets = cpu_bullets;
     for (int i = 0; i < cpu.ammo; i++) {
-        cpu.bullets[i] = create_entity(ENTITY_BULLET, (Vector2){0,0}, (Vector2){0,0}, RED, 10, 400, 1, 0, 0, false);
+        cpu.bullets[i] = create_entity(ENTITY_BULLET, (Vector2){0,0}, (Vector2){0,0}, CPU_BULLET_COLOR, CPU_BULLET_RADIUS, CPU_BULLET_SPEED, CPU_BULLET_DAMAGE, 0, 0, false);
+    
     }
 
-    int num_obstacles = 4;
+    int num_obstacles = QTY_OBSTACLES;
     Entity obstacles[num_obstacles];
-    float startX = 0.3f * screenWidth;
-    float endX   = 0.7f * screenWidth;
+    float startX = LIMIT_OBSTACLE_LEFT * SCREEN_WIDTH;
+    float endX   = LIMIT_OBSTACLE_RIGHT * SCREEN_WIDTH;
     float spacing = (endX - startX) / (num_obstacles + 1);
 
     for (int i = 0; i < num_obstacles; i++) {
         float x = startX + spacing * (i + 1);
-        float y = screenHeight / 2;
         if(i == 1){
-            obstacles[i] = create_entity(ENTITY_OBSTACLE, (Vector2){0,1}, (Vector2){x,y}, RED, 20, 400, 1, 0, 0, true);
+            obstacles[i] = create_entity(ENTITY_OBSTACLE, (Vector2){0,1}, (Vector2){x,OBSTACLE_START_POSITION_Y}, OBSTACLE_DAMAGE_COLOR, OBSTACLE_DAMAGE_RADIUS, OBSTACLE_DAMAGE_SPEED, OBSTACLE_DAMAGE_DAMAGE, 0, 0, true);
         }
         else if(i == 2){
-            obstacles[i] = create_entity(ENTITY_OBSTACLE, (Vector2){0,1}, (Vector2){x,y}, GREEN, 20, 250, -1, 0, 0, true);
+            obstacles[i] = create_entity(ENTITY_OBSTACLE, (Vector2){0,1}, (Vector2){x,OBSTACLE_START_POSITION_Y}, OBSTACLE_HEALING_COLOR, OBSTACLE_HEALING_RADIUS, OBSTACLE_HEALING_SPEED, OBSTACLE_HEALING_DAMAGE, 0, 0, true);
         }
         else {
-            obstacles[i] = create_entity(ENTITY_OBSTACLE, (Vector2){0,1}, (Vector2){x,y}, WHITE, 20, 200, 1, 0, 0, true);
+            obstacles[i] = create_entity(ENTITY_OBSTACLE, (Vector2){0,1}, (Vector2){x, OBSTACLE_START_POSITION_Y}, OBSTACLE_COLOR, OBSTACLE_RADIUS, OBSTACLE_SPEED, OBSTACLE_DAMAGE, 0, 0, true);
         }
     }
 
@@ -350,10 +407,20 @@ int main(void) {
         // for (int i = 0; i < 5; i++) draw_entity(&bullets[i]);
 
         // FOR DEBUG 
-        //DrawLine(70, 0, 2 + 70, screenHeight, BLUE); //player start 
-        DrawLine(70 - 20, 0, 2 + 70 - 20, screenHeight, BLUE); //player limit left 
-        DrawLine(70 - 20 + 240, 0, 2 + 70 - 20 + 240, screenHeight, BLUE); //player limit right 
-        DrawLine(70 - 20 + 240 + 60, 0, 2 + 70 - 20 + 240 + 60, screenHeight, WHITE); //obstacle track 1
+        //DrawLine(70, 0, 2 + 70, SCREEN_HEIGHT, BLUE); //player start 
+        int player_limit_left = 0.05f * SCREEN_WIDTH;
+        int player_limit_right = 0.30f * SCREEN_WIDTH;
+        int obstacle_limit_left = 0.31f * SCREEN_WIDTH;
+        int obstacle_limit_right = 0.70f * SCREEN_WIDTH;
+        int cpu_limit_left = 0.71f * SCREEN_WIDTH;
+        int cpu_limit_right = 0.95f * SCREEN_WIDTH;
+        DrawLine(player_limit_left, 0, player_limit_left, SCREEN_HEIGHT, BLUE); 
+        DrawLine(player_limit_right, 0, player_limit_right, SCREEN_HEIGHT, BLUE); 
+        DrawLine(obstacle_limit_left, 0, obstacle_limit_left, SCREEN_HEIGHT, WHITE); 
+        DrawLine(obstacle_limit_right, 0, obstacle_limit_right, SCREEN_HEIGHT, WHITE); 
+        DrawLine(cpu_limit_left, 0, cpu_limit_left, SCREEN_HEIGHT, RED); 
+        DrawLine(cpu_limit_right, 0, cpu_limit_right, SCREEN_HEIGHT, RED); 
+        
 
         EndDrawing();
     }
