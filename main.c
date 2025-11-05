@@ -164,17 +164,17 @@ Entity create_entity(EntityType type, Vector2 direction ,Vector2 position, Color
     e.aim_index = INITIAL_AIM_INDEX;
     
     // Create bullets array if ammo > 1
-    if (ammo > 1) {
-        e.bullets = malloc(sizeof(Entity) * ammo);
-        for (int i = 0; i < ammo; i++) {
-            e.bullets[i] = create_entity(ENTITY_BULLET, (Vector2){0,0}, (Vector2){0,0}, 
-                                       type == ENTITY_PLAYER ? PLAYER_BULLET_COLOR : CPU_BULLET_COLOR,
-                                       type == ENTITY_PLAYER ? PLAYER_BULLET_RADIUS : CPU_BULLET_RADIUS,
-                                       type == ENTITY_PLAYER ? PLAYER_BULLET_SPEED : CPU_BULLET_SPEED,
-                                       type == ENTITY_PLAYER ? PLAYER_BULLET_DAMAGE : CPU_BULLET_DAMAGE,
-                                       0, 0, false);
-        }
-    }
+    // if (ammo > 1) {
+    //     e.bullets = malloc(sizeof(Entity) * ammo);
+    //     for (int i = 0; i < ammo; i++) {
+    //         e.bullets[i] = create_entity(ENTITY_BULLET, (Vector2){0,0}, (Vector2){0,0}, 
+    //                                    type == ENTITY_PLAYER ? PLAYER_BULLET_COLOR : CPU_BULLET_COLOR,
+    //                                    type == ENTITY_PLAYER ? PLAYER_BULLET_RADIUS : CPU_BULLET_RADIUS,
+    //                                    type == ENTITY_PLAYER ? PLAYER_BULLET_SPEED : CPU_BULLET_SPEED,
+    //                                    type == ENTITY_PLAYER ? PLAYER_BULLET_DAMAGE : CPU_BULLET_DAMAGE,
+    //                                    0, 0, false);
+    //     }
+    // }
     
     return e;
 }
@@ -345,23 +345,6 @@ void bullet_check_collision(Entity *bullet, Entity *hit_entity, Entity *parent, 
         //play_ball_hit();
     }
 }
-void cleanup_entities(Entity *player, Entity *cpu) {
-    if (player != NULL) {
-        if (player->bullets != NULL) {
-            free(player->bullets);
-            player->bullets = NULL;
-        }
-        
-    }
-
-    if (cpu != NULL) {
-        if (cpu->bullets != NULL) {
-            free(cpu->bullets);
-            cpu->bullets = NULL;
-        }
-        
-    }
-}
 
 void reset_entity(Entity *e) {
     e->enabled = true;
@@ -420,7 +403,16 @@ int main(void) {
 
     Entity player = create_entity(ENTITY_PLAYER, (Vector2){0,0}, (Vector2){PLAYER_START_POSITION_X, PLAYER_START_POSITION_Y}, PLAYER_COLOR, PLAYER_RADIUS, PLAYER_SPEED, PLAYER_DAMAGE, PLAYER_AMMO, PLAYER_LIFE,true);
     Entity cpu = create_entity(ENTITY_CPU, (Vector2){1,1}, (Vector2){CPU_START_POSITION_X, CPU_START_POSITION_Y}, CPU_COLOR, CPU_RADIUS, CPU_SPEED, CPU_DAMAGE, CPU_AMMO, CPU_LIFE, true);
-    
+    Entity player_bullets[PLAYER_AMMO];
+    Entity cpu_bullets[CPU_AMMO];
+    player.bullets = player_bullets;
+    cpu.bullets = cpu_bullets;
+    for (int i = 0; i < PLAYER_AMMO; i++) {
+        player.bullets[i] = create_entity(ENTITY_BULLET, (Vector2){0,0}, (Vector2){0,0}, PLAYER_BULLET_COLOR, PLAYER_BULLET_RADIUS, PLAYER_BULLET_SPEED, PLAYER_BULLET_DAMAGE, 0, 0, false);
+    }
+    for (int i = 0; i < CPU_AMMO; i++) {
+        cpu.bullets[i] = create_entity(ENTITY_BULLET, (Vector2){0,0}, (Vector2){0,0}, CPU_BULLET_COLOR, CPU_BULLET_RADIUS, CPU_BULLET_SPEED, CPU_BULLET_DAMAGE, 0, 0, false);
+    } 
     Entity obstacles[QTY_OBSTACLES];
     float startX = LIMIT_OBSTACLE_LEFT * SCREEN_WIDTH;
     float endX   = LIMIT_OBSTACLE_RIGHT * SCREEN_WIDTH;
@@ -557,7 +549,6 @@ int main(void) {
             CLEANUP
     ==============================================================================*/
     
-    cleanup_entities(&player, &cpu);
     audio_unload();
     CloseWindow();
     return 0;
