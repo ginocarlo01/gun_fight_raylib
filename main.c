@@ -125,12 +125,23 @@ static const char* player_lose_sfx_path = "sfx/lose.wav";
     FUNCTIONS   
 ==============================================================================*/
 void normalize(Vector2 *v) {
+    if (!v) return;
     float mag = sqrtf(v->x * v->x + v->y * v->y);
     if (mag != 0.0f) {
         v->x /= mag;
         v->y /= mag;
     }
 }
+
+// void normalize(Vector2 *v) {
+//     if (!v) return;
+//     float mag = 1 / sqrtf(v->x * v->x + v->y * v->y);
+//     if (mag != 0.0f) {
+//         v->x *= mag;
+//         v->y *= mag;
+//     }
+// }
+
 
 void audio_init() {
     InitAudioDevice();
@@ -313,7 +324,6 @@ void handle_entity_life(Entity *entity, int damage, bool *restart_flag, int *pla
         entity->enabled = false;
         *restart_flag = true;
 
-        // Atualiza contador de vitória do oponente
         if (entity->type == ENTITY_PLAYER) {
             (*cpu_win_count)++;
             PlaySound(player_lose_sfx);
@@ -340,9 +350,7 @@ void bullet_check_collision(Entity *bullet, Entity *hit_entity, Entity *parent, 
         }
             
         bullet->enabled = false;
-        
-        //TODO add sound
-        //play_ball_hit();
+    
     }
 }
 
@@ -455,12 +463,12 @@ int main(void) {
 
         if (IsKeyPressed(KEY_W)) {
             player.aim_index++;
-            if (player.aim_index > AIM_DIRECTIONS_LEN-1) player.aim_index = 0; // ciclo para baixo
+            if (player.aim_index > AIM_DIRECTIONS_LEN-1) player.aim_index = 0;
             
         }
         if (IsKeyPressed(KEY_S)) {
             player.aim_index--;
-            if (player.aim_index < 0) player.aim_index = AIM_DIRECTIONS_LEN-1; // ciclo para cima
+            if (player.aim_index < 0) player.aim_index = AIM_DIRECTIONS_LEN-1; 
         }
 
 
@@ -502,7 +510,7 @@ int main(void) {
         DrawText("Restarting...", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2, 30, WHITE);
         EndDrawing();
 
-        WaitTime(1.0);  // pausa opcional pra mostrar feedback
+        WaitTime(1.0); 
         reset_game_state(&player, &cpu, obstacles, &current_cpu_timer);
         restart = false;
         continue;
