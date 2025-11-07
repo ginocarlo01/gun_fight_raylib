@@ -8,83 +8,84 @@
 ==============================================================================*/
 
 // Game settings
-static const int SCREEN_WIDTH = 1920;
-static const int SCREEN_HEIGHT = 1080;
-static const char * GAME_TITLE = "Gun Fight";
-static const int TARGET_FPS = 240;
+ const int SCREEN_WIDTH = 1920;
+ const int SCREEN_HEIGHT = 1080;
+ const char * GAME_TITLE = "Gun Fight";
+ const int TARGET_FPS = 240;
 
 // Movement constraints
-static const float LIMIT_PLAYER_LEFT = 0.05f;
-static const float LIMIT_PLAYER_RIGHT = 0.30f;
-static const float LIMIT_OBSTACLE_LEFT = 0.30f;
-static const float LIMIT_OBSTACLE_RIGHT = 0.70f;
-static const float LIMIT_CPU_LEFT = 0.7f;
-static const float LIMIT_CPU_RIGHT = 0.95f;
+ const float LIMIT_PLAYER_LEFT = 0.05f;
+ const float LIMIT_PLAYER_RIGHT = 0.30f;
+ const float LIMIT_OBSTACLE_LEFT = 0.30f;
+ const float LIMIT_OBSTACLE_RIGHT = 0.70f;
+ const float LIMIT_CPU_LEFT = 0.7f;
+ const float LIMIT_CPU_RIGHT = 0.95f;
 
 // Aiming settings
-static const Vector2 AIM_DIRECTIONS[3] = {
+ const Vector2 AIM_DIRECTIONS[3] = {
     {1, 0},
     {1, -1},
     {1, 1}  
 };
-static const int INITIAL_AIM_INDEX = 0;
-static const int LENGTH_LINE_AIM = 40;
-static const size_t AIM_DIRECTIONS_LEN = sizeof(AIM_DIRECTIONS) / sizeof(AIM_DIRECTIONS[0]);
+ const int INITIAL_AIM_INDEX = 0;
+ const int LENGTH_LINE_AIM = 40;
+ const size_t AIM_DIRECTIONS_LEN = sizeof(AIM_DIRECTIONS) / sizeof(AIM_DIRECTIONS[0]);
 
 // Player settings
-static const float PLAYER_START_POSITION_X = LIMIT_PLAYER_LEFT * 5 * SCREEN_WIDTH;
-static const float PLAYER_START_POSITION_Y = SCREEN_HEIGHT * 0.5;
-static const Color PLAYER_COLOR = ORANGE;
-static const int PLAYER_RADIUS = 20;
-static const int PLAYER_SPEED = 300;
-static const int PLAYER_DAMAGE = 0;
-static const int PLAYER_AMMO = 15;
-static const int PLAYER_LIFE = 3;
+ const float PLAYER_START_POSITION_X = LIMIT_PLAYER_LEFT * 5 * SCREEN_WIDTH;
+ const float PLAYER_START_POSITION_Y = SCREEN_HEIGHT * 0.5;
+ const Color PLAYER_COLOR = ORANGE;
+ const int PLAYER_RADIUS = 20;
+ const int PLAYER_SPEED = 300;
+ const int PLAYER_DAMAGE = 0;
+ const int PLAYER_AMMO = 15;
+ const int PLAYER_LIFE = 3;
 
 // Player bullet settings
-static const Color PLAYER_BULLET_COLOR = GREEN;
-static const int PLAYER_BULLET_RADIUS = 10;
-static const int PLAYER_BULLET_SPEED = 400;
-static const int PLAYER_BULLET_DAMAGE = 1;
+ const Color PLAYER_BULLET_COLOR = GREEN;
+ const int PLAYER_BULLET_RADIUS = 10;
+ const int PLAYER_BULLET_SPEED = 400;
+ const int PLAYER_BULLET_DAMAGE = 1;
 
 // CPU settings
-static const float CPU_START_POSITION_X = SCREEN_WIDTH * 0.85f;
-static const float CPU_START_POSITION_Y = SCREEN_HEIGHT * 0.5;
-static const Color CPU_COLOR = RED;
-static const int CPU_RADIUS = 20;
-static const int CPU_SPEED = 200;
-static const int CPU_DAMAGE = 0;
-static const int CPU_AMMO = 15;
-static const int CPU_LIFE = 1;
+ const float CPU_START_POSITION_X = SCREEN_WIDTH * 0.85f;
+ const float CPU_START_POSITION_Y = SCREEN_HEIGHT * 0.5;
+ const Color CPU_COLOR = RED;
+ const int CPU_RADIUS = 20;
+ const int CPU_SPEED = 200;
+ const int CPU_DAMAGE = 0;
+ const int CPU_AMMO = 15;
+ const int CPU_LIFE = 1;
 
 // CPU bullet settings
-static const Color CPU_BULLET_COLOR = RED;
-static const int CPU_BULLET_RADIUS = 10;
-static const int CPU_BULLET_SPEED = 400;
-static const int CPU_BULLET_DAMAGE = 1;
+ const Color CPU_BULLET_COLOR = RED;
+ const int CPU_BULLET_RADIUS = 10;
+ const int CPU_BULLET_SPEED = 400;
+ const int CPU_BULLET_DAMAGE = 1;
 
-static const float MAX_CPU_TIMER = 3.0f;
+ const float MAX_CPU_TIMER = 3.0f;
 
-static const int QTY_OBSTACLES = 4;
+ const int QTY_OBSTACLES = 4;
 
+//TODO
 // Default obstacle
-static const float OBSTACLE_START_POSITION_Y = SCREEN_HEIGHT * 0.5;
-static const Color OBSTACLE_COLOR = WHITE;
-static const int OBSTACLE_RADIUS = 20;
-static const int OBSTACLE_SPEED = 200;
-static const int OBSTACLE_DAMAGE = 0;
+ const float OBSTACLE_START_POSITION_Y = SCREEN_HEIGHT * 0.5;
+ const Color OBSTACLE_COLOR = WHITE;
+ const int OBSTACLE_RADIUS = 20;
+ const int OBSTACLE_SPEED = 200;
+ const int OBSTACLE_DAMAGE = 0;
 
 // Damaging obstacle
-static const Color OBSTACLE_DAMAGE_COLOR = RED;
-static const int OBSTACLE_DAMAGE_RADIUS = 20;
-static const int OBSTACLE_DAMAGE_SPEED = 250;
-static const int OBSTACLE_DAMAGE_DAMAGE = 1;
+ const Color OBSTACLE_DAMAGE_COLOR = RED;
+ const int OBSTACLE_DAMAGE_RADIUS = 20;
+ const int OBSTACLE_DAMAGE_SPEED = 250;
+ const int OBSTACLE_DAMAGE_DAMAGE = 1;
 
 // Healing obstacle
-static const Color OBSTACLE_HEALING_COLOR = GREEN;
-static const int OBSTACLE_HEALING_RADIUS = 20;
-static const int OBSTACLE_HEALING_SPEED = 200;
-static const int OBSTACLE_HEALING_DAMAGE = -1;
+ const Color OBSTACLE_HEALING_COLOR = GREEN;
+ const int OBSTACLE_HEALING_RADIUS = 20;
+ const int OBSTACLE_HEALING_SPEED = 200;
+ const int OBSTACLE_HEALING_DAMAGE = -1;
 
 // Entity definitions
 typedef enum {
@@ -113,13 +114,13 @@ typedef struct Entity {
     int aim_index;
 } Entity;
 
-static Sound ball_hit_sfx;
-static Sound player_win_sfx;
-static Sound player_lose_sfx;
+ Sound ball_hit_sfx;
+ Sound player_win_sfx;
+ Sound player_lose_sfx;
 
-static const char* ball_hit_sfx_path = "sfx/ball_hit.wav";
-static const char* player_win_sfx_path = "sfx/win.wav";
-static const char* player_lose_sfx_path = "sfx/lose.wav";
+ const char* ball_hit_sfx_path = "sfx/ball_hit.wav";
+ const char* player_win_sfx_path = "sfx/win.wav";
+ const char* player_lose_sfx_path = "sfx/lose.wav";
 
 /*==============================================================================
     FUNCTIONS   
@@ -223,7 +224,6 @@ void update_bullet_check(Entity *entity, float *current_timer, float max_timer){
     }
 }
 
-
 void update_entity(Entity *entity) {
     if (!entity->enabled) return;
     float delta = GetFrameTime();
@@ -289,7 +289,6 @@ void update_entity(Entity *entity) {
     }
 }
 
-
 void draw_entity(Entity *e) {
     if (!e->enabled) return;
 
@@ -333,8 +332,6 @@ void handle_entity_life(Entity *entity, int damage, bool *restart_flag, int *pla
         }
     }
 }
-
-
 
 void bullet_check_collision(Entity *bullet, Entity *hit_entity, Entity *parent, bool *restart_flag, int *player_win_count, int *cpu_win_count) {
     
@@ -410,6 +407,7 @@ int main(void) {
     ==============================================================================*/
 
     Entity player = create_entity(ENTITY_PLAYER, (Vector2){0,0}, (Vector2){PLAYER_START_POSITION_X, PLAYER_START_POSITION_Y}, PLAYER_COLOR, PLAYER_RADIUS, PLAYER_SPEED, PLAYER_DAMAGE, PLAYER_AMMO, PLAYER_LIFE,true);
+
     Entity cpu = create_entity(ENTITY_CPU, (Vector2){1,1}, (Vector2){CPU_START_POSITION_X, CPU_START_POSITION_Y}, CPU_COLOR, CPU_RADIUS, CPU_SPEED, CPU_DAMAGE, CPU_AMMO, CPU_LIFE, true);
     Entity player_bullets[PLAYER_AMMO];
     Entity cpu_bullets[CPU_AMMO];
