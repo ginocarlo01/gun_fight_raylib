@@ -4,36 +4,35 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-const uint16_t SCREEN_WIDTH = 960;
-const uint16_t SCREEN_HEIGHT = 540;
-const uint16_t HALF_SCREEN_WIDTH = SCREEN_WIDTH * 0.5;
-const uint16_t HALF_SCREEN_HEIGHT = SCREEN_HEIGHT * 0.5;
-const char* GAME_TITLE = "Game Title";
+typedef uint8_t percentage;
+typedef uint8_t seconds;
+typedef struct Vec2 {uint16_t x;uint16_t y;} Vec2;
+
+const Vec2 SCREEN_DIMENSIONS = {960, 540};
 const uint8_t TARGET_FPS = 240;
+const char* GAME_TITLE = "Game Title";
 const Color BACKGROUND_COLOR = BLACK;
+const percentage SCREEN_LIMIT_PLAYER = 30;
+const percentage SCREEN_LIMIT_CPU = 70;
 
-const uint8_t PLAYER_BULLETS_QTY = 5;
-const uint8_t CPU_BULLETS_QTY = 5;
-const uint8_t ENTITIES_QTY = PLAYER_BULLETS_QTY + CPU_BULLETS_QTY + 2;
+typedef enum{CPU,PLAYER,BULLET, OBSTACLE} EntityType;
+typedef enum{DAMAGE_OWNER, LIFE_OWNER, DESTROY_BULLET} EntityBehaviour;
+typedef struct Entity {EntityType type;Vector2 position;Vector2 direction;uint8_t radius;uint8_t ammo;seconds recharge_time;EntityBehaviour behaviour;EntityType owner;uint16_t speed; Color color;bool enabled;} Entity;
 
-typedef enum{
-    CPU,
-    PLAYER,
-    BULLET
-} EntityType;
+//TODO change the init values for percentage
+const Entity ENTITY_PLAYER = {.type = PLAYER,.position = (Vector2){100, 270}, .color = BLUE, .speed = 200, .radius = 20, .ammo = 5,.enabled = true};
+const Entity ENTITY_CPU = {.type = CPU,.position = (Vector2){860, 270}, .direction = {1,1} ,.color = RED, .speed = 150, .radius = 30, .ammo = 5, .recharge_time = 1,.enabled = true};
+const Entity ENTITY_BULLET_OF_PLAYER = {.type = BULLET,.color = BLUE, .speed = 300, .radius = 10, .owner = PLAYER};
+const Entity ENTITY_BULLET_OF_CPU = {.type = BULLET,.color = RED, .speed = 300, .radius = 10, .owner = CPU};
 
-//typedef struct Entity Entity;
-
-typedef struct Entity {
-    EntityType type;
-    Vector2 position;
-    Vector2 direction;
-    uint8_t radius;
-    EntityType owner;
-    uint16_t speed;
-    Color color;
-    bool enabled;
-} Entity;
+//TODO reorganize
+const Entity OBSTACLES[] = {
+    {.type = OBSTACLE, .behaviour = DESTROY_BULLET, .direction = {0,1} ,.color = WHITE, .speed = 150, .radius = 15, .enabled = true},
+    {.type = OBSTACLE, .behaviour = DAMAGE_OWNER, .direction = {0,1} ,.color = RED, .speed = 150, .radius = 15, .enabled = true},
+    {.type = OBSTACLE, .behaviour = LIFE_OWNER, .direction = {0,1} ,.color = GREEN, .speed = 150, .radius = 15, .enabled = true},
+    {.type = OBSTACLE, .behaviour = DESTROY_BULLET, .direction = {0,1} ,.color = WHITE, .speed = 150, .radius = 15, .enabled = true}
+};
+const size_t OBSTACLES_QTY = sizeof(OBSTACLES) / sizeof(OBSTACLES[0]);
 
 void normalize(Vector2 *v) {
     if (!v) return;
@@ -50,6 +49,34 @@ void update_entity(Entity *entity){
     entity->position.x += deltaTime * entity->speed * entity->direction.x;
     entity->position.y += deltaTime * entity->speed * entity->direction.y;
 
+    switch (entity->type)
+    {
+    case OBSTACLE:
+        if(entity->position.x - entity->radius < SCREEN_LIMIT_CPU * SCREEN_DIMENSIONS.x * 0.01) entity->direction.x *= -1;
+        if( entity->position.x + entity->radius > SCREEN_DIMENSIONS.x) entity->direction.x *= -1;
+        if(entity->position.y + entity->radius > SCREEN_DIMENSIONS.y) entity->direction.y *= -1;
+        if(entity->position.y - entity->radius <= 0) entity->direction.y *= -1;
+        break;
+    case CPU:
+        if(entity->position.x - entity->radius < SCREEN_LIMIT_CPU * SCREEN_DIMENSIONS.x * 0.01) entity->direction.x *= -1;
+        if( entity->position.x + entity->radius > SCREEN_DIMENSIONS.x) entity->direction.x *= -1;
+        if(entity->position.y + entity->radius > SCREEN_DIMENSIONS.y) entity->direction.y *= -1;
+        if(entity->position.y - entity->radius <= 0) entity->direction.y *= -1;
+        break;
+    case PLAYER:
+        if(entity->position.x + entity->radius > SCREEN_LIMIT_PLAYER * SCREEN_DIMENSIONS.x * 0.01) entity->position.x = SCREEN_LIMIT_PLAYER * SCREEN_DIMENSIONS.x * 0.01 - entity->radius;
+        if( entity->position.x - entity->radius <= 0) entity->position.x = entity->radius;
+        if(entity->position.y + entity->radius > SCREEN_DIMENSIONS.y) entity->position.y = SCREEN_DIMENSIONS.y - entity->radius;
+        if(entity->position.y - entity->radius <= 0) entity->position.y = entity->radius;
+        break;
+    case BULLET:
+        if(entity->position.x  > SCREEN_DIMENSIONS.x || entity->position.x  <= 0) entity->enabled = false;
+        if(entity->position.y > SCREEN_DIMENSIONS.y || entity->position.y  <= 0) entity->direction.y *= -1; 
+        break;
+    default:
+        break;
+    }
+
 }
 
 void draw_entity(Entity entity){
@@ -57,33 +84,52 @@ void draw_entity(Entity entity){
     DrawCircle(entity.position.x, entity.position.y, entity.radius, entity.color);
 }
 
-void spawn_bullet(Entity entity, Entity *entities){
-    //TODO
-    for(uint8_t i = 5; i > 0; i--){
-        printf("%d\n", i);
-        if(!entities[i].owner) continue;
+void spawn_bullet(Entity entity, Entity *entities, int entities_qty){
+    if(entity.ammo <= 0) return;
+    for(int i = entities_qty-1; i > 1 + OBSTACLES_QTY; i--){
         if(entities[i].owner != entity.type) continue;
         if(entities[i].position.x != 0 && entities[i].position.y != 0) continue;
         if(entities[i].enabled) continue;
         entities[i].enabled = true;
-        entities[i].position.x = entity.position.x + 30;
-        entities[i].position.y = entity.position.y;
-        entities[i].direction.x = 1;
+        entities[i].position = (Vector2){entity.position.x + 30 * (entity.type == PLAYER ? 1 : -1), entity.position.y};
+        entities[i].direction.x = (entity.type == PLAYER ? 1 : -1);
         return;
     }
 }
 
-int main(){
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, GAME_TITLE);
-    SetTargetFPS(TARGET_FPS);
+void auto_spawn_bullet(Entity entity, Entity *entities, int entities_qty){
+    static float recharge_time_count_down = 0;
+    recharge_time_count_down += GetFrameTime();
+    if(recharge_time_count_down > entity.recharge_time) {
+        spawn_bullet(entity, entities, entities_qty);
+        recharge_time_count_down = 0;
+    }
+}
 
-    //Entity player = {.type = PLAYER, .position = (Vector2){HALF_SCREEN_WIDTH, HALF_SCREEN_HEIGHT}, .radius = 20, .speed = 200, .color = WHITE,.enabled = true};
+void restart_game(Entity *entities){
+    entities[0] = ENTITY_PLAYER;
+    entities[1] = ENTITY_CPU;
+    //TODO REORGANIZE
+    for (int k = 0; k < OBSTACLES_QTY; k++) {
+        int i = 2 + k;
+        entities[i] = OBSTACLES[k];
+        entities[i].position.y = SCREEN_DIMENSIONS.y * 0.5;
+        entities[i].position.x = ((SCREEN_LIMIT_CPU - SCREEN_LIMIT_PLAYER)*0.01/(OBSTACLES_QTY+1) * (k+1)+ SCREEN_LIMIT_PLAYER*0.01)* SCREEN_DIMENSIONS.x; 
+    } 
     
-    Entity entities[ENTITIES_QTY];
-    entities[0] = (Entity){.type = PLAYER, .position = (Vector2){HALF_SCREEN_WIDTH, HALF_SCREEN_HEIGHT}, .radius = 20, .speed = 200, .color = WHITE,.enabled = true};
+    for (uint8_t i = 0; i < entities[0].ammo; i++) entities[i+2+OBSTACLES_QTY] = ENTITY_BULLET_OF_PLAYER;
+    for (uint8_t i = 0; i < entities[1].ammo; i++) entities[i+2+OBSTACLES_QTY+entities[0].ammo] = ENTITY_BULLET_OF_CPU;
+}
+
+int main(){
+    InitWindow(SCREEN_DIMENSIONS.x, SCREEN_DIMENSIONS.y, GAME_TITLE);
+    SetTargetFPS(TARGET_FPS);
+    int entities_qty = ENTITY_PLAYER.ammo + ENTITY_CPU.ammo + OBSTACLES_QTY + 2;
+    Entity entities[entities_qty];
+    restart_game(entities);
     Entity *player = &entities[0];
-    for (uint8_t i = 1; i < PLAYER_BULLETS_QTY+1; ++i) entities[i] = (Entity){.type = BULLET,.position = (Vector2){0, 0},.direction = (Vector2){0, 0},.radius = 10, .speed = 300 ,.color = BLUE,.enabled = false,.owner = PLAYER};
-    
+    Entity *cpu = &entities[1];
+    normalize(&(*cpu).direction);
     
     while (!WindowShouldClose()) {
         //INPUT
@@ -92,22 +138,19 @@ int main(){
         if(IsKeyDown(KEY_DOWN)) (*player).direction.y = 1;
         if(IsKeyDown(KEY_RIGHT)) (*player).direction.x = 1;
         if(IsKeyDown(KEY_LEFT)) (*player).direction.x = -1;
-        if(IsKeyPressed(KEY_SPACE)) spawn_bullet((*player), entities);
+        if(IsKeyPressed(KEY_R)) restart_game(entities);
+        if(IsKeyPressed(KEY_SPACE)) spawn_bullet((*player), entities, entities_qty);
         normalize(&(*player).direction);
 
         //UPDATE
-        
-        for (uint8_t i = 0; i < PLAYER_BULLETS_QTY+1; i++) update_entity(&entities[i]);
+        auto_spawn_bullet(*cpu, entities, entities_qty);
+        for (uint8_t i = 0; i < entities_qty; i++) update_entity(&entities[i]);
 
         //DRAW
         BeginDrawing();
         ClearBackground(BACKGROUND_COLOR);
-        //draw_entity(player);
-        for (uint8_t i = 0; i < PLAYER_BULLETS_QTY+1; i++) draw_entity(entities[i]);
-        //TODO
-        // for(iterator = 0; iterator < ENTITIES_QTY; iterator++){
-        // }
-
+        for (uint8_t i = 0; i < entities_qty; i++) draw_entity(entities[i]);
+        
         //DEBUG
         DrawText(TextFormat("FPS: %i", GetFPS()), 10, 30, 20, GREEN);
 
