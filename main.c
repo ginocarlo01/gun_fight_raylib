@@ -1,4 +1,6 @@
 #include "raylib.h"
+#include "types.h"
+#include "config.h"
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -6,12 +8,6 @@
 
 //TODO more than one CPU
 
-typedef uint8_t percentage;
-typedef uint8_t seconds;
-typedef struct Vec2 {uint16_t x;uint16_t y;} Vec2;
-
-const Vec2 SCREEN_DIMENSIONS = {960, 540};
-const uint8_t TARGET_FPS = 240;
 const Color BACKGROUND_COLOR = BLACK;
 const percentage SCREEN_LIMIT_PLAYER = 30;
 const percentage SCREEN_LIMIT_CPU = 70;
