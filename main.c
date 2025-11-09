@@ -4,19 +4,20 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+//TODO more than one CPU
+
 typedef uint8_t percentage;
 typedef uint8_t seconds;
 typedef struct Vec2 {uint16_t x;uint16_t y;} Vec2;
 
 const Vec2 SCREEN_DIMENSIONS = {960, 540};
 const uint8_t TARGET_FPS = 240;
-const char* GAME_TITLE = "Game Title";
 const Color BACKGROUND_COLOR = BLACK;
 const percentage SCREEN_LIMIT_PLAYER = 30;
 const percentage SCREEN_LIMIT_CPU = 70;
 
 typedef enum{CPU,PLAYER,BULLET, OBSTACLE} EntityType;
-typedef enum{DAMAGE_OWNER, LIFE_OWNER, DESTROY_BULLET} EntityBehaviour;
+typedef enum{DAMAGE_OWNER, DESTROY_BULLET_ONLY} EntityBehaviour;
 typedef struct Entity {EntityType type;Vector2 position;Vector2 direction;uint8_t radius;uint8_t ammo;seconds recharge_time;EntityBehaviour behaviour;EntityType owner;uint16_t speed; Color color;bool enabled;} Entity;
 
 //TODO change the init values for percentage
@@ -24,14 +25,10 @@ const Entity ENTITY_PLAYER = {.type = PLAYER,.position = (Vector2){100, 270}, .c
 const Entity ENTITY_CPU = {.type = CPU,.position = (Vector2){860, 270}, .direction = {1,1} ,.color = RED, .speed = 150, .radius = 30, .ammo = 5, .recharge_time = 1,.enabled = true};
 const Entity ENTITY_BULLET_OF_PLAYER = {.type = BULLET,.color = BLUE, .speed = 300, .radius = 10, .owner = PLAYER};
 const Entity ENTITY_BULLET_OF_CPU = {.type = BULLET,.color = RED, .speed = 300, .radius = 10, .owner = CPU};
+const Entity ENTITY_OBSTACLE_DESTROY_BULLET_ONLY = {.type = OBSTACLE, .behaviour = DESTROY_BULLET_ONLY, .direction = {0,1} ,.color = WHITE, .speed = 150, .radius = 15, .enabled = true};
+const Entity ENTITY_OBSTACLE_DAMAGE_OWNER = {.type = OBSTACLE, .behaviour = DAMAGE_OWNER, .direction = {0,1} ,.color = RED, .speed = 200, .radius = 15, .enabled = true};
+const Entity OBSTACLES[] = {ENTITY_OBSTACLE_DESTROY_BULLET_ONLY, ENTITY_OBSTACLE_DAMAGE_OWNER, ENTITY_OBSTACLE_DAMAGE_OWNER,ENTITY_OBSTACLE_DESTROY_BULLET_ONLY};
 
-//TODO reorganize
-const Entity OBSTACLES[] = {
-    {.type = OBSTACLE, .behaviour = DESTROY_BULLET, .direction = {0,1} ,.color = WHITE, .speed = 150, .radius = 15, .enabled = true},
-    {.type = OBSTACLE, .behaviour = DAMAGE_OWNER, .direction = {0,1} ,.color = RED, .speed = 150, .radius = 15, .enabled = true},
-    {.type = OBSTACLE, .behaviour = LIFE_OWNER, .direction = {0,1} ,.color = GREEN, .speed = 150, .radius = 15, .enabled = true},
-    {.type = OBSTACLE, .behaviour = DESTROY_BULLET, .direction = {0,1} ,.color = WHITE, .speed = 150, .radius = 15, .enabled = true}
-};
 const size_t OBSTACLES_QTY = sizeof(OBSTACLES) / sizeof(OBSTACLES[0]);
 
 void normalize(Vector2 *v) {
@@ -91,7 +88,7 @@ void spawn_bullet(Entity entity, Entity *entities, int entities_qty){
         if(entities[i].position.x != 0 && entities[i].position.y != 0) continue;
         if(entities[i].enabled) continue;
         entities[i].enabled = true;
-        entities[i].position = (Vector2){entity.position.x + 30 * (entity.type == PLAYER ? 1 : -1), entity.position.y};
+        entities[i].position = (Vector2){entity.position.x + (entity.radius + 10) * (entity.type == PLAYER ? 1 : -1), entity.position.y};
         entities[i].direction.x = (entity.type == PLAYER ? 1 : -1);
         return;
     }
@@ -121,8 +118,24 @@ void restart_game(Entity *entities){
     for (uint8_t i = 0; i < entities[1].ammo; i++) entities[i+2+OBSTACLES_QTY+entities[0].ammo] = ENTITY_BULLET_OF_CPU;
 }
 
+void handle_bullet_collisions(Entity *entities, int entities_qty, uint8_t *player_score, uint8_t *cpu_score){
+    for (int bullet_idx = 2 + OBSTACLES_QTY; bullet_idx < entities_qty; bullet_idx++) {
+        if(!entities[bullet_idx].enabled) continue;
+        for(int target_idx = 0; target_idx < 2 + OBSTACLES_QTY;target_idx++){
+            if(!entities[target_idx].enabled) continue;
+            if(CheckCollisionCircles(entities[bullet_idx].position, entities[bullet_idx].radius, entities[target_idx].position, entities[target_idx].radius)){
+                if(entities[bullet_idx].owner == PLAYER && entities[target_idx].type == CPU) {(*player_score)++; restart_game(entities);}
+                if(entities[bullet_idx].owner == CPU && entities[target_idx].type == PLAYER) {(*cpu_score)++; restart_game(entities);}
+                if(entities[target_idx].behaviour == DESTROY_BULLET_ONLY) entities[bullet_idx].enabled = entities[target_idx].enabled = false;
+                if(entities[target_idx].behaviour == DAMAGE_OWNER) {(entities[bullet_idx].owner == PLAYER? (*cpu_score)++ : (*player_score)++); restart_game(entities);}
+            }
+        }
+    }
+}
+
 int main(){
-    InitWindow(SCREEN_DIMENSIONS.x, SCREEN_DIMENSIONS.y, GAME_TITLE);
+    SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_UNDECORATED);
+    InitWindow(SCREEN_DIMENSIONS.x, SCREEN_DIMENSIONS.y, "");
     SetTargetFPS(TARGET_FPS);
     int entities_qty = ENTITY_PLAYER.ammo + ENTITY_CPU.ammo + OBSTACLES_QTY + 2;
     Entity entities[entities_qty];
@@ -130,6 +143,8 @@ int main(){
     Entity *player = &entities[0];
     Entity *cpu = &entities[1];
     normalize(&(*cpu).direction);
+    uint8_t player_score;
+    uint8_t cpu_score;
     
     while (!WindowShouldClose()) {
         //INPUT
@@ -145,6 +160,7 @@ int main(){
         //UPDATE
         auto_spawn_bullet(*cpu, entities, entities_qty);
         for (uint8_t i = 0; i < entities_qty; i++) update_entity(&entities[i]);
+        handle_bullet_collisions(entities, entities_qty, &player_score, &cpu_score);
 
         //DRAW
         BeginDrawing();
@@ -153,6 +169,8 @@ int main(){
         
         //DEBUG
         DrawText(TextFormat("FPS: %i", GetFPS()), 10, 30, 20, GREEN);
+        DrawText(TextFormat("Player Score: %i", player_score), 10, 50, 20, WHITE);
+        DrawText(TextFormat("CPU Score: %i", cpu_score), 10, 70, 20, WHITE);
 
         EndDrawing();
     }
