@@ -5,11 +5,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-//TODO more than one CPU
-
-//TODO change the init values for percentage
-
-//TODO
 const size_t OBSTACLES_QTY = sizeof(OBSTACLES) / sizeof(OBSTACLES[0]);
 
 void normalize(Vector2 *v) {
@@ -23,11 +18,9 @@ void normalize(Vector2 *v) {
 
 void audio_init() {
     InitAudioDevice();
-
     ball_hit_sfx   = LoadSound(ball_hit_sfx_path);
     player_win_sfx = LoadSound(player_win_sfx_path);
     player_lose_sfx = LoadSound(player_lose_sfx_path);
-
 }
 
 void audio_unload() {
@@ -93,11 +86,11 @@ void spawn_bullet(Entity *entity, Entity *entities, int entities_qty){
 }
 
 void auto_spawn_bullet(Entity *entity, Entity *entities, int entities_qty){
-    static float recharge_time_count_down = 0;
-    recharge_time_count_down += GetFrameTime();
-    if(recharge_time_count_down > entity->recharge_time) {
+    static float recharge_time_counter = 0;
+    recharge_time_counter += GetFrameTime();
+    if(recharge_time_counter > entity->recharge_time) {
         spawn_bullet(entity, entities, entities_qty);
-        recharge_time_count_down = 0;
+        recharge_time_counter = 0;
     }
 }
 
