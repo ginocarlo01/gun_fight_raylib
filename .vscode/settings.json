@@ -10,6 +10,14 @@
 	},
 	"files.associations": {
 		"*.m": "c",
-		"raylib.h": "c"
+		"raylib.h": "c",
+		"math.h": "c",
+		"compare": "c",
+		"cstdint": "c",
+		"stdlib.h": "c",
+		"types.h": "c",
+		"config.h": "c",
+		"stdio.h": "c",
+		"stdint.h": "c"
 	}
 }
