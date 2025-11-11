@@ -1,9 +1,11 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-typedef unsigned char u8;
-typedef unsigned short u16;
-typedef unsigned int u32;
+#include <stdint.h>
+
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
 typedef u8 percentage;
 typedef u8 seconds;
 typedef struct Vec2 {u16 x;u16 y;} Vec2;

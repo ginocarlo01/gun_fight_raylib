@@ -40,7 +40,7 @@ void update_entity(Entity *entity){
     {
     case OBSTACLE:
         if(entity->position.x - entity->radius < SCREEN_LIMIT_CPU * SCREEN_DIMENSIONS.x * 0.01) entity->direction.x *= -1;
-        if( entity->position.x + entity->radius > SCREEN_DIMENSIONS.x) entity->direction.x *= -1;
+        if(entity->position.x + entity->radius > SCREEN_DIMENSIONS.x) entity->direction.x *= -1;
         if(entity->position.y + entity->radius > SCREEN_DIMENSIONS.y) entity->direction.y *= -1;
         if(entity->position.y - entity->radius <= 0) entity->direction.y *= -1;
         break;
@@ -103,16 +103,16 @@ void restart_game(Entity *entities) {
     float step_pct = (end_pct - start_pct) / (OBSTACLES_QTY + 1);
     float center_y = SCREEN_DIMENSIONS.y * 0.5f;
 
-    for (u8 k = 0; k < OBSTACLES_QTY; k++) {
-        u8 i = 2 + k;
+    for (int k = 0; k < OBSTACLES_QTY; k++) {
+        int i = 2 + k;
         entities[i] = OBSTACLES[k];
         entities[i].position.y = center_y;
         entities[i].position.x = (start_pct + step_pct * (k + 1)) * SCREEN_DIMENSIONS.x;
     }
 
-    u8 next_index = 2 + OBSTACLES_QTY;
-    for (u8 i = 0; i < entities[0].ammo; i++) entities[next_index++] = ENTITY_BULLET_OF_PLAYER;
-    for (u8 i = 0; i < entities[1].ammo; i++) entities[next_index++] = ENTITY_BULLET_OF_CPU;
+    int next_index = 2 + OBSTACLES_QTY;
+    for (int i = 0; i < entities[0].ammo; i++) entities[next_index++] = ENTITY_BULLET_OF_PLAYER;
+    for (int i = 0; i < entities[1].ammo; i++) entities[next_index++] = ENTITY_BULLET_OF_CPU;
 }
 
 
