@@ -185,7 +185,10 @@ int main(){
         player->direction = get_player_input();
         if (IsKeyPressed(KEY_R)) restart_game(&game);
         if (IsKeyPressed(KEY_SPACE)) spawn_bullet(player, game.entities, game.entities_qty);
-        
+        if (IsGamepadAvailable(0)) {
+            if (IsGamepadButtonPressed(0, 8)) restart_game(&game);
+            if (IsGamepadButtonPressed(0, 7)) spawn_bullet(player, game.entities, game.entities_qty);
+        }
 
         //UPDATE
         auto_spawn_bullet(cpu, game.entities, game.entities_qty);
