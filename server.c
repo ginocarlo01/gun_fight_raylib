@@ -38,8 +38,8 @@ int main() {
     double last = GetTime();
     bool game_started = false;
 
+    //TODO if one player disconnects, stops the whole game
     while (!WindowShouldClose()) {
-        // Recebe inputs dos jogadores
         InputPacket packet;
         struct sockaddr_in sender;
         ssize_t bytes = recvfrom(sock, &packet, sizeof(packet), MSG_DONTWAIT, (struct sockaddr*)&sender, &addrLen);
@@ -47,7 +47,6 @@ int main() {
         if (bytes <= 0)
             continue;
 
-        // Identifica jogador (cliente 1 ou 2)
         int player_id = -1;
         for (int i = 0; i < MAX_PLAYERS; i++) {
             if (memcmp(&clients[i], &sender, sizeof(sender)) == 0) {
@@ -67,7 +66,7 @@ int main() {
                 }
             }
 
-            // Quando os dois conectarem, inicia o jogo
+            //TODO check this conditional
             if (clients[0].sin_port != 0 && clients[1].sin_port != 0 && !game_started) {
                 printf("Ambos os jogadores conectados. Iniciando partida!\n");
                 restart_game(state.entities);
@@ -77,14 +76,11 @@ int main() {
             }
         }
 
-        // Atualiza input se o jogador for válido
-        if (player_id != -1)
-            inputs[player_id] = packet;
+        if (player_id != -1) inputs[player_id] = packet;
 
-        // Se o jogo ainda não começou, pula simulação
         if (!game_started) continue;
 
-        // Simulação a cada tick
+        //TODO check tick
         double now = GetTime();
         if (now - last >= tick) {
             last = now;
@@ -106,6 +102,7 @@ int main() {
                 update_entity(&state.entities[i], tick);
 
             handle_bullet_collisions(state.entities, MAX_ENTITIES, &state.player_score, &state.cpu_score);
+            printf("Scores -> Player: %d  CPU: %d\n", state.player_score, state.cpu_score);
 
             // Envia estado para cada cliente conectado
             for (int i = 0; i < MAX_PLAYERS; i++) {

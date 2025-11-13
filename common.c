@@ -126,16 +126,27 @@ void restart_game(Entity *entities) {
     for (int i = 0; i < entities[1].ammo; i++) entities[next_index++] = ENTITY_BULLET_OF_CPU;
 }
 
-void handle_bullet_collisions(Entity *entities, int entities_qty, u8 *player_score, u8 *cpu_score){
+void handle_bullet_collisions(Entity *entities, int entities_qty, u8 *player_score, u8 *cpu_score) {
     for (int bullet_idx = 2 + OBSTACLES_QTY; bullet_idx < entities_qty; bullet_idx++) {
-        if(!entities[bullet_idx].enabled) continue;
-        for(int target_idx = 0; target_idx < 2 + OBSTACLES_QTY;target_idx++){
-            if(!entities[target_idx].enabled) continue;
-            if(CheckCollisionCircles(entities[bullet_idx].position, entities[bullet_idx].radius, entities[target_idx].position, entities[target_idx].radius)){
-                if(entities[bullet_idx].owner == PLAYER && entities[target_idx].type == CPU) {(*player_score)++; PlaySound(player_win_sfx);restart_game(entities);}
-                if(entities[bullet_idx].owner == CPU && entities[target_idx].type == PLAYER) {(*cpu_score)++; PlaySound(player_lose_sfx); restart_game(entities);}
-                if(entities[target_idx].behaviour == DESTROY_BULLET_ONLY) {PlaySound(ball_hit_sfx); entities[bullet_idx].enabled = entities[target_idx].enabled = false;}
-                if(entities[target_idx].behaviour == DAMAGE_OWNER) {(entities[bullet_idx].owner == PLAYER? (*cpu_score)++ : (*player_score)++); restart_game(entities);}
+        if (!entities[bullet_idx].enabled) continue;
+
+        for (int target_idx = 0; target_idx < 2 + OBSTACLES_QTY; target_idx++) {
+            if (!entities[target_idx].enabled) continue;
+            if (!CheckCollisionCircles(entities[bullet_idx].position, entities[bullet_idx].radius,entities[target_idx].position, entities[target_idx].radius)) continue;
+            if (entities[bullet_idx].owner == PLAYER && entities[target_idx].type == CPU) {
+                (*player_score)++;
+                PlaySound(player_win_sfx);
+                restart_game(entities);
+            } else if (entities[bullet_idx].owner == CPU && entities[target_idx].type == PLAYER) {
+                (*cpu_score)++;
+                PlaySound(player_lose_sfx);
+                restart_game(entities);
+            } else if (entities[target_idx].behaviour == DESTROY_BULLET_ONLY) {
+                PlaySound(ball_hit_sfx);
+                entities[bullet_idx].enabled = entities[target_idx].enabled = false;
+            } else if (entities[target_idx].behaviour == DAMAGE_OWNER) {
+                (entities[bullet_idx].owner == PLAYER ? (*cpu_score)++ : (*player_score)++);
+                restart_game(entities);
             }
         }
     }
