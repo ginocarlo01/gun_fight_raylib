@@ -1,40 +1,19 @@
 #include "raylib.h"
 #include "types.h"
-#include "config.h"
+#include "audio.h"
+#include "game_settings.h"
+#include "entities.h"
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <raymath.h>
 
-const size_t OBSTACLES_QTY = sizeof(OBSTACLES) / sizeof(OBSTACLES[0]);
-
-void normalize(Vector2 *v) {
-    if (!v) return;
-    float mag = sqrtf(v->x * v->x + v->y * v->y);
-    if (mag != 0.0f) {
-        v->x /= mag;
-        v->y /= mag;
-    }
-}
-
-void audio_init() {
-    InitAudioDevice();
-    ball_hit_sfx   = LoadSound(ball_hit_sfx_path);
-    player_win_sfx = LoadSound(player_win_sfx_path);
-    player_lose_sfx = LoadSound(player_lose_sfx_path);
-}
-
-void audio_unload() {
-    UnloadSound(ball_hit_sfx);
-    UnloadSound(player_win_sfx);
-    UnloadSound(player_lose_sfx);
-    CloseAudioDevice();
-}
+const size_t OBSTACLES_QTY = 4;
 
 void update_entity(Entity *entity){
     if(!entity->enabled) return;
     float deltaTime = GetFrameTime();
-    entity->position.x += deltaTime * entity->speed * entity->direction.x;
-    entity->position.y += deltaTime * entity->speed * entity->direction.y;
+    entity->position = Vector2Add(entity->position, Vector2Scale(entity->direction, deltaTime * entity->speed));
 
     switch (entity->type)
     {
@@ -115,7 +94,6 @@ void restart_game(Entity *entities) {
     for (int i = 0; i < entities[1].ammo; i++) entities[next_index++] = ENTITY_BULLET_OF_CPU;
 }
 
-
 void handle_bullet_collisions(Entity *entities, int entities_qty, u8 *player_score, u8 *cpu_score){
     for (int bullet_idx = 2 + OBSTACLES_QTY; bullet_idx < entities_qty; bullet_idx++) {
         if(!entities[bullet_idx].enabled) continue;
@@ -135,13 +113,13 @@ int main(){
     SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_UNDECORATED);
     InitWindow(SCREEN_DIMENSIONS.x, SCREEN_DIMENSIONS.y, "");
     SetTargetFPS(TARGET_FPS);
-    audio_init();
+    InitAudioAssets();
     int entities_qty = ENTITY_PLAYER.ammo + ENTITY_CPU.ammo + OBSTACLES_QTY + 2;
     Entity entities[entities_qty];
     restart_game(entities);
     Entity *player = &entities[0];
     Entity *cpu = &entities[1];
-    normalize(&(*cpu).direction);
+    (*cpu).direction = Vector2Normalize((*cpu).direction);
     u8 player_score;
     u8 cpu_score;
     
@@ -154,7 +132,7 @@ int main(){
         if(IsKeyDown(KEY_LEFT)) (*player).direction.x = -1;
         if(IsKeyPressed(KEY_R)) restart_game(entities);
         if(IsKeyPressed(KEY_SPACE)) spawn_bullet(&(*player), entities, entities_qty);
-        normalize(&(*player).direction);
+        (*player).direction = Vector2Normalize((*player).direction);
 
         //UPDATE
         auto_spawn_bullet(&(*cpu), entities, entities_qty);
@@ -174,7 +152,7 @@ int main(){
 
         EndDrawing();
     }
-    audio_unload();
+    UnloadAudioAssets();
     CloseWindow();
     return 0;
 }

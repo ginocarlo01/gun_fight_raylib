@@ -18,6 +18,7 @@
 		"types.h": "c",
 		"config.h": "c",
 		"stdio.h": "c",
-		"stdint.h": "c"
+		"stdint.h": "c",
+		"audio.h": "c"
 	}
 }

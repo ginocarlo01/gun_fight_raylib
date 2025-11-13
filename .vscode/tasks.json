@@ -87,14 +87,12 @@
             "args": [
                 "RAYLIB_PATH=C:/raylib/raylib",
                 "PROJECT_NAME=${fileBasenameNoExtension}",
-                "OBJS=${fileBasenameNoExtension}.c",
                 "BUILD_MODE=DEBUG"
             ],
             "osx": {
                 "args": [
                     "RAYLIB_PATH=/home/gino/Downloads/raylib",
                     "PROJECT_NAME=${fileBasenameNoExtension}",
-                    "OBJS=${fileBasenameNoExtension}.c",
                     "BUILD_MODE=DEBUG"
                 ],
             },
