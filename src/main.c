@@ -9,6 +9,7 @@
 #include <raymath.h>
 
 const size_t OBSTACLES_QTY = 4;
+const float DEADZONE = 0.2f;
 
 typedef struct {
     Entity entities[64]; 
@@ -154,9 +155,17 @@ Vector2 get_player_input() {
     if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) dir = Vector2Add(dir, left);
     if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) dir = Vector2Add(dir, right);
 
+    if (IsGamepadAvailable(0)) {
+        float axisX = GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X);
+        float axisY = GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y);
+
+        if (fabsf(axisX) > DEADZONE || fabsf(axisY) > DEADZONE) {
+            dir = (Vector2){ axisX, axisY };
+    }
+    }
+
     return Vector2Normalize(dir);
 }
-
 
 int main(){
     SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_UNDECORATED);
