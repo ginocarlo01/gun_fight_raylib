@@ -1,42 +1,24 @@
-#include "raylib.h"
+
 #include "types.h"
 #include "config.h"
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include "common.h"
+#include "raylib.h"
 
-const size_t OBSTACLES_QTY = sizeof(OBSTACLES) / sizeof(OBSTACLES[0]);
+const size_t OBSTACLES_QTY = 4;
 
 void normalize(Vector2 *v) {
-    if (!v) return;
-    float mag = sqrtf(v->x * v->x + v->y * v->y);
-    if (mag != 0.0f) {
-        v->x /= mag;
-        v->y /= mag;
-    }
+    float mag = sqrtf(v->x*v->x + v->y*v->y);
+    if (mag > 0) { v->x /= mag; v->y /= mag; }
 }
 
-void audio_init() {
-    InitAudioDevice();
-    ball_hit_sfx   = LoadSound(ball_hit_sfx_path);
-    player_win_sfx = LoadSound(player_win_sfx_path);
-    player_lose_sfx = LoadSound(player_lose_sfx_path);
-}
-
-void audio_unload() {
-    UnloadSound(ball_hit_sfx);
-    UnloadSound(player_win_sfx);
-    UnloadSound(player_lose_sfx);
-    CloseAudioDevice();
-}
-
-void update_entity(Entity *entity){
-    if(!entity->enabled) return;
-    float deltaTime = GetFrameTime();
-    entity->position.x += deltaTime * entity->speed * entity->direction.x;
-    entity->position.y += deltaTime * entity->speed * entity->direction.y;
-
-    switch (entity->type)
+void update_entity(Entity *entity, float delta) {
+    if (!entity->enabled) return;
+    entity->position.x += delta * entity->speed * entity->direction.x;
+    entity->position.y += delta * entity->speed * entity->direction.y;
+        switch (entity->type)
     {
     case OBSTACLE:
         if(entity->position.x - entity->radius < SCREEN_LIMIT_CPU * SCREEN_DIMENSIONS.x * 0.01) entity->direction.x *= -1;
@@ -63,12 +45,6 @@ void update_entity(Entity *entity){
     default:
         break;
     }
-
-}
-
-void draw_entity(Entity entity){
-    if(!entity.enabled) return;
-    DrawCircle(entity.position.x, entity.position.y, entity.radius, entity.color);
 }
 
 void spawn_bullet(Entity *entity, Entity *entities, int entities_qty){
@@ -85,14 +61,49 @@ void spawn_bullet(Entity *entity, Entity *entities, int entities_qty){
     }
 }
 
-void auto_spawn_bullet(Entity *entity, Entity *entities, int entities_qty){
-    static float recharge_time_counter = 0;
-    recharge_time_counter += GetFrameTime();
-    if(recharge_time_counter > entity->recharge_time) {
-        spawn_bullet(entity, entities, entities_qty);
-        recharge_time_counter = 0;
-    }
-}
+// void spawn_bullet(Entity *entity, Entity *entities, int entities_qty) {
+//     printf("[spawn_bullet] Chamado por entidade tipo=%d (ammo=%d)\n", entity->type, entity->ammo);
+
+//     if (entity->ammo <= 0) {
+//         printf("[spawn_bullet] Sem munição!\n");
+//         return;
+//     }
+
+//     for (int i = entities_qty - 1; i >= 0; i--) {
+//         printf("[spawn_bullet] Checando entidade %d (owner=%d, enabled=%d, pos=(%.1f, %.1f))\n",
+//                i, entities[i].owner, entities[i].enabled, entities[i].position.x, entities[i].position.y);
+
+//         if (entities[i].owner != entity->type) {
+//             printf("  -> Owner diferente (precisa ser %d)\n", entity->type);
+//             continue;
+//         }
+//         if (entities[i].position.x != 0 && entities[i].position.y != 0) {
+//             printf("  -> Já tem posição usada (%.1f, %.1f)\n", entities[i].position.x, entities[i].position.y);
+//             continue;
+//         }
+//         if (entities[i].enabled) {
+//             printf("  -> Já está habilitada, pulando...\n");
+//             continue;
+//         }
+
+//         printf("[spawn_bullet] Encontrada entidade livre no slot %d, criando bala!\n", i);
+
+//         entities[i].enabled = true;
+//         entities[i].position = (Vector2){
+//             entity->position.x + (entity->radius + 10) * (entity->type == PLAYER ? 1 : -1),
+//             entity->position.y
+//         };
+//         entities[i].direction.x = (entity->type == PLAYER ? 1 : -1);
+//         entity->ammo--;
+
+//         printf("[spawn_bullet] Bala criada! pos=(%.1f, %.1f), dir.x=%.1f, ammo restante=%d\n",
+//                entities[i].position.x, entities[i].position.y, entities[i].direction.x, entity->ammo);
+//         return;
+//     }
+
+//     printf("[spawn_bullet] Nenhuma entidade disponível para bala!\n");
+// }
+
 
 void restart_game(Entity *entities) {
     entities[0] = ENTITY_PLAYER;
@@ -128,52 +139,4 @@ void handle_bullet_collisions(Entity *entities, int entities_qty, u8 *player_sco
             }
         }
     }
-}
-
-int main(){
-    SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_UNDECORATED);
-    InitWindow(SCREEN_DIMENSIONS.x, SCREEN_DIMENSIONS.y, "");
-    SetTargetFPS(TARGET_FPS);
-    audio_init();
-    int entities_qty = ENTITY_PLAYER.ammo + ENTITY_CPU.ammo + OBSTACLES_QTY + 2;
-    Entity entities[entities_qty];
-    restart_game(entities);
-    Entity *player = &entities[0];
-    Entity *cpu = &entities[1];
-    normalize(&(*cpu).direction);
-    u8 player_score;
-    u8 cpu_score;
-    
-    while (!WindowShouldClose()) {
-        //INPUT
-        (*player).direction = (Vector2){0,0};
-        if(IsKeyDown(KEY_UP)) (*player).direction.y = -1;
-        if(IsKeyDown(KEY_DOWN)) (*player).direction.y = 1;
-        if(IsKeyDown(KEY_RIGHT)) (*player).direction.x = 1;
-        if(IsKeyDown(KEY_LEFT)) (*player).direction.x = -1;
-        if(IsKeyPressed(KEY_R)) restart_game(entities);
-        if(IsKeyPressed(KEY_SPACE)) spawn_bullet(&(*player), entities, entities_qty);
-        normalize(&(*player).direction);
-
-        //UPDATE
-        auto_spawn_bullet(&(*cpu), entities, entities_qty);
-        for (u8 i = 0; i < entities_qty; i++) update_entity(&entities[i]);
-        handle_bullet_collisions(entities, entities_qty, &player_score, &cpu_score);
-
-        //DRAW
-        BeginDrawing();
-        ClearBackground(BACKGROUND_COLOR);
-        for (u8 i = 0; i < entities_qty; i++) draw_entity(entities[i]);
-        
-        //DEBUG
-        DrawText(TextFormat("FPS: %i", GetFPS()), 10, 30, 20, GREEN);
-        DrawText(TextFormat("Player Score: %i", player_score), 10, 50, 20, WHITE);
-        DrawText(TextFormat("CPU Score: %i", cpu_score), 10, 70, 20, WHITE);
-        DrawText(TextFormat("Player Ammo: %i", player->ammo), 10, 90, 20, WHITE);
-
-        EndDrawing();
-    }
-    audio_unload();
-    CloseWindow();
-    return 0;
 }
