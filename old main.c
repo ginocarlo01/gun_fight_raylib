@@ -114,13 +114,13 @@ typedef struct Entity {
     int aim_index;
 } Entity;
 
- Sound ball_hit_sfx;
- Sound player_win_sfx;
- Sound player_lose_sfx;
+ Sound BallHitSFX;
+ Sound PlayerWinSFX;
+ Sound PlayerLoseSFX;
 
- const char* ball_hit_sfx_path = "sfx/ball_hit.wav";
- const char* player_win_sfx_path = "sfx/win.wav";
- const char* player_lose_sfx_path = "sfx/lose.wav";
+ const char* BallHitSFXPath = "sfx/ball_hit.wav";
+ const char* PlayerWinSFXPath = "sfx/win.wav";
+ const char* PlayerLoseSFXPath = "sfx/lose.wav";
 
 /*==============================================================================
     FUNCTIONS   
@@ -147,16 +147,16 @@ void normalize(Vector2 *v) {
 void audio_init() {
     InitAudioDevice();
 
-    ball_hit_sfx   = LoadSound(ball_hit_sfx_path);
-    player_win_sfx = LoadSound(player_win_sfx_path);
-    player_lose_sfx = LoadSound(player_lose_sfx_path);
+    BallHitSFX   = LoadSound(BallHitSFXPath);
+    PlayerWinSFX = LoadSound(PlayerWinSFXPath);
+    PlayerLoseSFX = LoadSound(PlayerLoseSFXPath);
 
 }
 
 void audio_unload() {
-    UnloadSound(ball_hit_sfx);
-    UnloadSound(player_win_sfx);
-    UnloadSound(player_lose_sfx);
+    UnloadSound(BallHitSFX);
+    UnloadSound(PlayerWinSFX);
+    UnloadSound(PlayerLoseSFX);
     CloseAudioDevice();
 }
 
@@ -208,7 +208,7 @@ void spawn_bullet(Entity *entity) {
 
     entity->ammo--;
 
-    PlaySound(ball_hit_sfx);
+    PlaySound(BallHitSFX);
 }
 
 void update_bullet_check(Entity *entity, float *current_timer, float max_timer){
@@ -233,11 +233,11 @@ void update_entity(Entity *entity) {
         case ENTITY_BULLET:
             if (entity->position.x - entity->radius > SCREEN_WIDTH || entity->position.x - entity->radius < 0) {
                 entity->enabled = false;
-                PlaySound(ball_hit_sfx);
+                PlaySound(BallHitSFX);
             }
             if (entity->position.y - entity->radius < 0 || entity->position.y - entity->radius > SCREEN_HEIGHT) {
                 entity->direction.y *= -1;
-                PlaySound(ball_hit_sfx);
+                PlaySound(BallHitSFX);
             }
             break;
 
@@ -278,12 +278,12 @@ void update_entity(Entity *entity) {
             if (entity->position.y < 0) {
                 entity->position.y = 0;
                 entity->direction.y *= -1;
-                PlaySound(ball_hit_sfx);
+                PlaySound(BallHitSFX);
             }
             if (entity->position.y > SCREEN_HEIGHT) {
                 entity->position.y = SCREEN_HEIGHT;
                 entity->direction.y *= -1;
-                PlaySound(ball_hit_sfx);
+                PlaySound(BallHitSFX);
             }
             break;
     }
@@ -325,10 +325,10 @@ void handle_entity_life(Entity *entity, int damage, bool *restart_flag, int *pla
 
         if (entity->type == ENTITY_PLAYER) {
             (*cpu_win_count)++;
-            PlaySound(player_lose_sfx);
+            PlaySound(PlayerLoseSFX);
         } else if (entity->type == ENTITY_CPU) {
             (*player_win_count)++;
-            PlaySound(player_win_sfx);
+            PlaySound(PlayerWinSFX);
         }
     }
 }

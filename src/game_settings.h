@@ -4,10 +4,10 @@
 #include "types.h"
 #include <raylib.h>
 
-extern const Vec2 SCREEN_DIMENSIONS;
-extern const u8 TARGET_FPS;
-extern const Color BACKGROUND_COLOR;
-extern const percentage SCREEN_LIMIT_PLAYER;
-extern const percentage SCREEN_LIMIT_CPU;
+extern const Vec2 ScreenDimensions;
+extern const u8 TargetFPS;
+extern const Color BackgroundColor;
+extern const percentage ScreenLimitPlayer;
+extern const percentage ScreenLimitCPU;
 
 #endif
