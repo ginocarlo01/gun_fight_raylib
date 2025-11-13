@@ -3,15 +3,15 @@
 
 #include <raylib.h>
 
-extern const char* ball_hit_sfx_path;
-extern const char* player_win_sfx_path;
-extern const char* player_lose_sfx_path;
+extern const char* BallHitSFXPath;
+extern const char* PlayerWinSFXPath;
+extern const char* PlayerLoseSFXPath;
 
-extern Sound ball_hit_sfx;
-extern Sound player_win_sfx;
-extern Sound player_lose_sfx;
+extern Sound BallHitSFX;
+extern Sound PlayerWinSFX;
+extern Sound PlayerLoseSFX;
 
-void InitAudioAssets();
-void UnloadAudioAssets();
+void init_audio();
+void close_audio();
 
 #endif

@@ -20,32 +20,32 @@ typedef struct {
 
 void update_entity(Entity *entity){
     if(!entity->enabled) return;
-    float deltaTime = GetFrameTime();
-    entity->position = Vector2Add(entity->position, Vector2Scale(entity->direction, deltaTime * entity->speed));
+    float delta_time = GetFrameTime();
+    entity->position = Vector2Add(entity->position, Vector2Scale(entity->direction, delta_time * entity->speed));
 
     switch (entity->type)
     {
     case OBSTACLE:
-        if(entity->position.x - entity->radius < SCREEN_LIMIT_CPU * SCREEN_DIMENSIONS.x * 0.01) entity->direction.x *= -1;
-        if(entity->position.x + entity->radius > SCREEN_DIMENSIONS.x) entity->direction.x *= -1;
-        if(entity->position.y + entity->radius > SCREEN_DIMENSIONS.y) entity->direction.y *= -1;
+        if(entity->position.x - entity->radius < ScreenLimitCPU * ScreenDimensions.x * 0.01) entity->direction.x *= -1;
+        if(entity->position.x + entity->radius > ScreenDimensions.x) entity->direction.x *= -1;
+        if(entity->position.y + entity->radius > ScreenDimensions.y) entity->direction.y *= -1;
         if(entity->position.y - entity->radius <= 0) entity->direction.y *= -1;
         break;
     case CPU:
-        if(entity->position.x - entity->radius < SCREEN_LIMIT_CPU * SCREEN_DIMENSIONS.x * 0.01) entity->direction.x *= -1;
-        if( entity->position.x + entity->radius > SCREEN_DIMENSIONS.x) entity->direction.x *= -1;
-        if(entity->position.y + entity->radius > SCREEN_DIMENSIONS.y) entity->direction.y *= -1;
+        if(entity->position.x - entity->radius < ScreenLimitCPU * ScreenDimensions.x * 0.01) entity->direction.x *= -1;
+        if( entity->position.x + entity->radius > ScreenDimensions.x) entity->direction.x *= -1;
+        if(entity->position.y + entity->radius > ScreenDimensions.y) entity->direction.y *= -1;
         if(entity->position.y - entity->radius <= 0) entity->direction.y *= -1;
         break;
     case PLAYER:
-        if(entity->position.x + entity->radius > SCREEN_LIMIT_PLAYER * SCREEN_DIMENSIONS.x * 0.01) entity->position.x = SCREEN_LIMIT_PLAYER * SCREEN_DIMENSIONS.x * 0.01 - entity->radius;
+        if(entity->position.x + entity->radius > ScreenLimitPlayer * ScreenDimensions.x * 0.01) entity->position.x = ScreenLimitPlayer * ScreenDimensions.x * 0.01 - entity->radius;
         if( entity->position.x - entity->radius <= 0) entity->position.x = entity->radius;
-        if(entity->position.y + entity->radius > SCREEN_DIMENSIONS.y) entity->position.y = SCREEN_DIMENSIONS.y - entity->radius;
+        if(entity->position.y + entity->radius > ScreenDimensions.y) entity->position.y = ScreenDimensions.y - entity->radius;
         if(entity->position.y - entity->radius <= 0) entity->position.y = entity->radius;
         break;
     case BULLET:
-        if(entity->position.x  > SCREEN_DIMENSIONS.x || entity->position.x  <= 0) entity->enabled = false;
-        if(entity->position.y > SCREEN_DIMENSIONS.y || entity->position.y  <= 0) entity->direction.y *= -1; 
+        if(entity->position.x  > ScreenDimensions.x || entity->position.x  <= 0) entity->enabled = false;
+        if(entity->position.y > ScreenDimensions.y || entity->position.y  <= 0) entity->direction.y *= -1; 
         break;
     default:
         break;
@@ -83,26 +83,26 @@ void auto_spawn_bullet(Entity *entity, Entity *entities, int entities_qty){
 
 
 void restart_game(GameState *game) {
-    game->entities[0] = ENTITY_PLAYER;
-    game->entities[1] = ENTITY_CPU;
+    game->entities[0] = DefaultPlayer;
+    game->entities[1] = DefaultCPU;
 
-    float start_pct = SCREEN_LIMIT_PLAYER * 0.01f;
-    float end_pct = SCREEN_LIMIT_CPU * 0.01f;
+    float start_pct = ScreenLimitPlayer * 0.01f;
+    float end_pct = ScreenLimitCPU * 0.01f;
     float step_pct = (end_pct - start_pct) / (OBSTACLES_QTY + 1);
-    float center_y = SCREEN_DIMENSIONS.y * 0.5f;
+    float center_y = ScreenDimensions.y * 0.5f;
 
     for (int k = 0; k < OBSTACLES_QTY; k++) {
         int i = 2 + k;
-        game->entities[i] = OBSTACLES[k];
+        game->entities[i] = ObstaclesOrder[k];
         game->entities[i].position = (Vector2){
-            ((start_pct + step_pct * (k + 1)) * SCREEN_DIMENSIONS.x),
+            ((start_pct + step_pct * (k + 1)) * ScreenDimensions.x),
             center_y
         };
     }
 
     int next_index = 2 + OBSTACLES_QTY;
-    for (int i = 0; i < ENTITY_PLAYER.ammo; i++) game->entities[next_index++] = ENTITY_BULLET_OF_PLAYER;
-    for (int i = 0; i < ENTITY_CPU.ammo; i++) game->entities[next_index++] = ENTITY_BULLET_OF_CPU;
+    for (int i = 0; i < DefaultPlayer.ammo; i++) game->entities[next_index++] = DefaultBulletOfPlayer;
+    for (int i = 0; i < DefaultCPU.ammo; i++) game->entities[next_index++] = DefaultBulletOfCPU;
 
     game->entities_qty = next_index;
 }
@@ -121,16 +121,16 @@ void handle_bullet_collisions(GameState *game) {
 
                 if (entities[bullet_idx].owner == PLAYER && entities[target_idx].type == CPU) {
                     game->player_score++;
-                    PlaySound(player_win_sfx);
+                    PlaySound(PlayerWinSFX);
                     restart_game(game);
                 }
                 if (entities[bullet_idx].owner == CPU && entities[target_idx].type == PLAYER) {
                     game->cpu_score++;
-                    PlaySound(player_lose_sfx);
+                    PlaySound(PlayerLoseSFX);
                     restart_game(game);
                 }
                 if (entities[target_idx].behaviour == DESTROY_BULLET_ONLY) {
-                    PlaySound(ball_hit_sfx);
+                    PlaySound(BallHitSFX);
                     entities[bullet_idx].enabled = entities[target_idx].enabled = false;
                 }
                 if (entities[target_idx].behaviour == DAMAGE_OWNER) {
@@ -169,9 +169,9 @@ Vector2 get_player_input() {
 
 int main(){
     SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_UNDECORATED);
-    InitWindow(SCREEN_DIMENSIONS.x, SCREEN_DIMENSIONS.y, "");
-    SetTargetFPS(TARGET_FPS);
-    InitAudioAssets();
+    InitWindow(ScreenDimensions.x, ScreenDimensions.y, "");
+    SetTargetFPS(TargetFPS);
+    init_audio();
     GameState game = {0};
     restart_game(&game);
     game.player_score = 0;
@@ -194,7 +194,7 @@ int main(){
 
         //DRAW
         BeginDrawing();
-        ClearBackground(BACKGROUND_COLOR);
+        ClearBackground(BackgroundColor);
         for (int i = 0; i < game.entities_qty; i++) draw_entity(game.entities[i]);
         
         //DEBUG
@@ -205,7 +205,7 @@ int main(){
 
         EndDrawing();
     }
-    UnloadAudioAssets();
+    close_audio();
     CloseWindow();
     return 0;
 }

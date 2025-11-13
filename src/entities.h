@@ -4,12 +4,12 @@
 #include "types.h"
 #include <raylib.h>
 
-extern const Entity ENTITY_PLAYER;
-extern const Entity ENTITY_CPU;
-extern const Entity ENTITY_BULLET_OF_PLAYER;
-extern const Entity ENTITY_BULLET_OF_CPU;
-extern const Entity ENTITY_OBSTACLE_DESTROY_BULLET_ONLY;
-extern const Entity ENTITY_OBSTACLE_DAMAGE_OWNER;
-extern const Entity OBSTACLES[];
+extern const Entity DefaultPlayer;
+extern const Entity DefaultCPU;
+extern const Entity DefaultBulletOfPlayer;
+extern const Entity DefaultBulletOfCPU;
+extern const Entity ObstacleDestroyBullet;
+extern const Entity ObstacleDamageOwner;
+extern const Entity ObstaclesOrder[];
 
 #endif
