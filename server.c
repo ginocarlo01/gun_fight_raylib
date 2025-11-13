@@ -12,7 +12,7 @@
 int main() {
     // Inicializa Raylib (janela invisível)
     SetConfigFlags(FLAG_WINDOW_HIDDEN);  // mantém janela oculta
-    InitWindow(800, 450, "Hidden Window (Server Timer)");
+    InitWindow(800, 450, "hidden window");
     SetTargetFPS(60);
 
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -24,12 +24,7 @@ int main() {
     serverAddr.sin_port = htons(SERVER_PORT);
     serverAddr.sin_addr.s_addr = INADDR_ANY;
 
-    if (bind(sock, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
-        perror("Erro ao fazer bind");
-        return 1;
-    }
-
-    printf("Servidor aguardando conexões na porta %d...\n", SERVER_PORT);
+    if (bind(sock, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {perror("bind error");return 1;}
 
     GameState state = {0};
     InputPacket inputs[MAX_PLAYERS] = {0};
@@ -60,7 +55,7 @@ int main() {
             for (int i = 0; i < MAX_PLAYERS; i++) {
                 if (clients[i].sin_port == 0) {
                     clients[i] = sender;
-                    printf("Novo jogador conectado: %d (porta %d)\n", i + 1, ntohs(sender.sin_port));
+                    printf("New Player: %d (port %d)\n", i + 1, ntohs(sender.sin_port));
                     player_id = i;
                     break;
                 }
@@ -68,7 +63,7 @@ int main() {
 
             //TODO check this conditional
             if (clients[0].sin_port != 0 && clients[1].sin_port != 0 && !game_started) {
-                printf("Ambos os jogadores conectados. Iniciando partida!\n");
+                printf("Start Game\n");
                 restart_game(state.entities);
                 state.player_score = 0;
                 state.cpu_score = 0;
@@ -94,7 +89,7 @@ int main() {
                 if (inputs[i].left) p->direction.x = -1;
                 if (inputs[i].right) p->direction.x = 1;
                 normalize(&p->direction);
-                if (inputs[i].shoot){printf("Player %d tentou atirar!\n", i + 1);spawn_bullet(p, state.entities, MAX_ENTITIES);}
+                if (inputs[i].shoot) spawn_bullet(p, state.entities, MAX_ENTITIES);
                     
             }
 
@@ -102,16 +97,11 @@ int main() {
                 update_entity(&state.entities[i], tick);
 
             handle_bullet_collisions(state.entities, MAX_ENTITIES, &state.player_score, &state.cpu_score);
-            printf("Scores -> Player: %d  CPU: %d\n", state.player_score, state.cpu_score);
 
-            // Envia estado para cada cliente conectado
             for (int i = 0; i < MAX_PLAYERS; i++) {
                 if (clients[i].sin_port != 0) {
                     ssize_t sent = sendto(sock, &state, sizeof(state), 0, (struct sockaddr*)&clients[i], addrLen);
-                    if (sent < 0)
-                        perror("Erro ao enviar estado");
-                    // else
-                    //     printf("Estado enviado ao jogador %d (%ld bytes)\n", i + 1, sent);
+                    if (sent < 0) perror("Error");
                 }
             }
         }

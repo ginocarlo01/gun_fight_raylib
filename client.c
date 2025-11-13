@@ -10,7 +10,7 @@
 
 
 int main() {
-    InitWindow(SCREEN_DIMENSIONS.x, SCREEN_DIMENSIONS.y, "Pong Online");
+    InitWindow(SCREEN_DIMENSIONS.x, SCREEN_DIMENSIONS.y, "Gun Fight Online");
     SetTargetFPS(TARGET_FPS);
 
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
