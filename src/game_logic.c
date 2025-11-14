@@ -8,8 +8,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-const size_t OBSTACLES_QTY = 4;
-
 void update_entity(Entity *entity, float delta_time){
     if(!entity->enabled) return;
     entity->position = Vector2Add(entity->position, Vector2Scale(entity->direction, delta_time * entity->speed));
@@ -77,10 +75,10 @@ void restart_game(GameState *game) {
 
     float start_pct = ScreenLimitPlayer * 0.01f;
     float end_pct = ScreenLimitCPU * 0.01f;
-    float step_pct = (end_pct - start_pct) / (OBSTACLES_QTY + 1);
+    float step_pct = (end_pct - start_pct) / (ObstaclesOrderSize + 1);
     float center_y = ScreenDimensions.y * 0.5f;
 
-    for (int k = 0; k < OBSTACLES_QTY; k++) {
+    for (int k = 0; k < ObstaclesOrderSize; k++) {
         int i = 2 + k;
         game->entities[i] = ObstaclesOrder[k];
         game->entities[i].position = (Vector2){
@@ -89,7 +87,7 @@ void restart_game(GameState *game) {
         };
     }
 
-    int next_index = 2 + OBSTACLES_QTY;
+    int next_index = 2 + ObstaclesOrderSize;
     for (int i = 0; i < DefaultPlayer.ammo; i++) game->entities[next_index++] = DefaultBulletOfPlayer;
     for (int i = 0; i < DefaultCPU.ammo; i++) game->entities[next_index++] = DefaultBulletOfCPU;
 
@@ -99,10 +97,10 @@ void restart_game(GameState *game) {
 void handle_bullet_collisions(GameState *game) {
     Entity *entities = game->entities;
 
-    for (int bullet_idx = 2 + OBSTACLES_QTY; bullet_idx < game->entities_qty; bullet_idx++) {
+    for (int bullet_idx = 2 + ObstaclesOrderSize; bullet_idx < game->entities_qty; bullet_idx++) {
         if (!entities[bullet_idx].enabled) continue;
 
-        for (int target_idx = 0; target_idx < 2 + OBSTACLES_QTY; target_idx++) {
+        for (int target_idx = 0; target_idx < 2 + ObstaclesOrderSize; target_idx++) {
             if (!entities[target_idx].enabled) continue;
 
             if (CheckCollisionCircles(entities[bullet_idx].position, entities[bullet_idx].radius,entities[target_idx].position, entities[target_idx].radius)) {

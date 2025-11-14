@@ -65,3 +65,6 @@ const Entity ObstaclesOrder[] = {
     ObstacleDestroyBullet,
     ObstacleDestroyBullet
 };
+
+//TODO check exaclty why this works only here
+const int ObstaclesOrderSize = sizeof(ObstaclesOrder) / sizeof(ObstaclesOrder[0]);
