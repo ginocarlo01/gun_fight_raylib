@@ -12,3 +12,4 @@ void handle_bullet_collisions(GameState *game);
 Vector2 process_input(EntityType entity_type, GameState *game, InputPacket input) ;
 
 #endif
+

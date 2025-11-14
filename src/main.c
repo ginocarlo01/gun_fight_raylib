@@ -16,6 +16,7 @@ int main(){
     InitWindow(ScreenDimensions.x, ScreenDimensions.y, "");
     SetTargetFPS(TargetFPS);
     init_audio();
+    init_textures();
 
     GameState game = {0};
     restart_game(&game);
@@ -48,7 +49,7 @@ int main(){
 
         EndDrawing();
     }
-
+    unload_textures();
     close_audio();
     CloseWindow();
     return 0;
