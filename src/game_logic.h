@@ -9,6 +9,6 @@ void spawn_bullet(Entity *entity, Entity *entities, int entities_qty);
 void auto_spawn_bullet(Entity *entity, Entity *entities, int entities_qty);
 void restart_game(GameState *game);
 void handle_bullet_collisions(GameState *game);
-Vector2 process_input(GameState *game, InputPacket input) ;
+Vector2 process_input(EntityType entity_type, GameState *game, InputPacket input) ;
 
 #endif

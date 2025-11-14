@@ -9,16 +9,13 @@
 #include <string.h>
 #include <stdio.h>
 
-#define MAX_PLAYERS 2
-
 int main() {
-    // Raylib apenas para timing e math
     SetConfigFlags(FLAG_WINDOW_HIDDEN);
-    InitWindow(800, 450, "Server Window Hidden");
+    InitWindow(800, 450, "");
     SetTargetFPS(TargetFPS);
 
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
-    struct sockaddr_in serverAddr, clients[MAX_PLAYERS];
+    struct sockaddr_in serverAddr, clients[MAX_PLAYERS_ONLINE_MODE];
     socklen_t addrLen = sizeof(struct sockaddr_in);
 
     memset(clients, 0, sizeof(clients));
@@ -33,7 +30,7 @@ int main() {
     }
 
     GameState state = {0};
-    InputPacket inputs[MAX_PLAYERS] = {0};
+    InputPacket inputs[MAX_PLAYERS_ONLINE_MODE] = {0};
 
     double tick = 1.0 / TargetFPS;
     double last = GetTime();
@@ -41,7 +38,6 @@ int main() {
 
     while (!WindowShouldClose()) {
 
-        // --- RECEIVE PACKET ---
         InputPacket packet;
         struct sockaddr_in sender;
         ssize_t bytes = recvfrom(sock, &packet, sizeof(packet),
@@ -50,23 +46,21 @@ int main() {
                                  &addrLen);
 
         if (bytes > 0) {
-            int pid = -1;
+            int player_id = -1;
 
-            // Verifica se é um jogador já registrado
-            for (int i = 0; i < MAX_PLAYERS; i++) {
+            for (int i = 0; i < MAX_PLAYERS_ONLINE_MODE; i++) {
                 if (memcmp(&clients[i], &sender, sizeof(sender)) == 0) {
-                    pid = i;
+                    player_id = i;
                     break;
                 }
             }
 
-            // Novo jogador
-            if (pid == -1) {
-                for (int i = 0; i < MAX_PLAYERS; i++) {
+            if (player_id == -1) {
+                for (int i = 0; i < MAX_PLAYERS_ONLINE_MODE; i++) {
                     if (clients[i].sin_port == 0) {
                         clients[i] = sender;
-                        printf("[SERVER] Novo jogador: %d\n", i + 1);
-                        pid = i;
+                        printf("New Player: %d\n", i + 1);
+                        player_id = i;
                         break;
                     }
                 }
@@ -74,7 +68,7 @@ int main() {
                 if (clients[0].sin_port != 0 &&
                     clients[1].sin_port != 0 &&
                     !game_started) {
-                    printf("[SERVER] Iniciando partida\n");
+                    printf("Starting game\n");
                     restart_game(&state);
                     state.player_score = 0;
                     state.cpu_score = 0;
@@ -82,32 +76,28 @@ int main() {
                 }
             }
 
-            if (pid != -1)
-                inputs[pid] = packet;
+            if (player_id != -1)
+                inputs[player_id] = packet;
         }
 
         if (!game_started)
             continue;
 
-        // --- FIXED TICK ---
         double now = GetTime();
         if (now - last < tick)
             continue;
 
 
         last = now;
-        // --- PROCESS INPUT ---
-        for (int i = 0; i < MAX_PLAYERS; i++) {
-            state.entities[i].direction = process_input(&state, inputs[i]);
+        for (int i = 0; i < MAX_PLAYERS_ONLINE_MODE; i++) {
+            state.entities[i].direction = process_input(i == 0? PLAYER : CPU, &state, inputs[i]);
         }
 
-        // --- UPDATE ENTITIES ---
         for (int i = 0; i < state.entities_qty; i++) update_entity(&state.entities[i], tick);
 
         handle_bullet_collisions(&state);
 
-        // --- SEND STATE ---
-        for (int i = 0; i < MAX_PLAYERS; i++) {
+        for (int i = 0; i < MAX_PLAYERS_ONLINE_MODE; i++) {
             if (clients[i].sin_port != 0) sendto(sock, &state, sizeof(state), 0,(struct sockaddr*)&clients[i], addrLen);
         }
     }

@@ -24,24 +24,23 @@ int main(){
 
     Entity *player = &game.entities[0];
     Entity *cpu = &game.entities[1];
-    cpu->direction = Vector2Normalize(cpu->direction);
 
     while (!WindowShouldClose()) {
-        // --- INPUT ---
+        // INPUT
         InputPacket input = read_input();
-        player->direction = process_input(&game, input);
+        player->direction = process_input(player->type, &game, input);
 
-        // --- UPDATE ---
+        // UPDATE
         auto_spawn_bullet(cpu, game.entities, game.entities_qty);
         for (int i = 0; i < game.entities_qty; i++) update_entity(&game.entities[i], GetFrameTime());
         handle_bullet_collisions(&game);
 
-        // --- DRAW ---
+        // DRAW
         BeginDrawing();
         ClearBackground(BackgroundColor);
         draw_entities(&game);
 
-        // --- DEBUG ---
+        // DEBUG
         DrawText(TextFormat("FPS: %i", GetFPS()), 10, 30, 20, GREEN);
         DrawText(TextFormat("Player Score: %i", game.player_score), 10, 50, 20, WHITE);
         DrawText(TextFormat("CPU Score: %i", game.cpu_score), 10, 70, 20, WHITE);

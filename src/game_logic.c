@@ -130,7 +130,7 @@ void handle_bullet_collisions(GameState *game) {
     }
 }
 
-Vector2 process_input(GameState *game, InputPacket input) {
+Vector2 process_input(EntityType entity_type, GameState *game, InputPacket input) {
     const Vector2 up    = { 0, -1 };
     const Vector2 down  = { 0,  1 };
     const Vector2 left  = { -1, 0 };
@@ -143,7 +143,7 @@ Vector2 process_input(GameState *game, InputPacket input) {
     if (input.left)  dir = Vector2Add(dir, left);
     if (input.right) dir = Vector2Add(dir, right);
 
-    if (input.shoot) spawn_bullet(&((game->entities)[0]), game->entities, game->entities_qty);
+    if (input.shoot) spawn_bullet(&((game->entities)[entity_type == PLAYER ? 0 : 1]), game->entities, game->entities_qty);
 
     return Vector2Normalize(dir);
 }
