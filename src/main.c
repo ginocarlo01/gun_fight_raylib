@@ -33,7 +33,7 @@ int main(){
 
         // --- UPDATE ---
         auto_spawn_bullet(cpu, game.entities, game.entities_qty);
-        for (int i = 0; i < game.entities_qty; i++) update_entity(&game.entities[i]);
+        for (int i = 0; i < game.entities_qty; i++) update_entity(&game.entities[i], GetFrameTime());
         handle_bullet_collisions(&game);
 
         // --- DRAW ---

@@ -8,13 +8,10 @@
 #include <math.h>
 #include <stdlib.h>
 
-const size_t OBSTACLES_QTY = 4;
-
-void update_entity(Entity *entity){
+void update_entity(Entity *entity, float delta_time){
     if(!entity->enabled) return;
-    float delta_time = GetFrameTime();
     entity->position = Vector2Add(entity->position, Vector2Scale(entity->direction, delta_time * entity->speed));
-
+    
     switch (entity->type)
     {
     case OBSTACLE:
@@ -78,10 +75,10 @@ void restart_game(GameState *game) {
 
     float start_pct = ScreenLimitPlayer * 0.01f;
     float end_pct = ScreenLimitCPU * 0.01f;
-    float step_pct = (end_pct - start_pct) / (OBSTACLES_QTY + 1);
+    float step_pct = (end_pct - start_pct) / (ObstaclesOrderSize + 1);
     float center_y = ScreenDimensions.y * 0.5f;
 
-    for (int k = 0; k < OBSTACLES_QTY; k++) {
+    for (int k = 0; k < ObstaclesOrderSize; k++) {
         int i = 2 + k;
         game->entities[i] = ObstaclesOrder[k];
         game->entities[i].position = (Vector2){
@@ -90,7 +87,7 @@ void restart_game(GameState *game) {
         };
     }
 
-    int next_index = 2 + OBSTACLES_QTY;
+    int next_index = 2 + ObstaclesOrderSize;
     for (int i = 0; i < DefaultPlayer.ammo; i++) game->entities[next_index++] = DefaultBulletOfPlayer;
     for (int i = 0; i < DefaultCPU.ammo; i++) game->entities[next_index++] = DefaultBulletOfCPU;
 
@@ -100,10 +97,10 @@ void restart_game(GameState *game) {
 void handle_bullet_collisions(GameState *game) {
     Entity *entities = game->entities;
 
-    for (int bullet_idx = 2 + OBSTACLES_QTY; bullet_idx < game->entities_qty; bullet_idx++) {
+    for (int bullet_idx = 2 + ObstaclesOrderSize; bullet_idx < game->entities_qty; bullet_idx++) {
         if (!entities[bullet_idx].enabled) continue;
 
-        for (int target_idx = 0; target_idx < 2 + OBSTACLES_QTY; target_idx++) {
+        for (int target_idx = 0; target_idx < 2 + ObstaclesOrderSize; target_idx++) {
             if (!entities[target_idx].enabled) continue;
 
             if (CheckCollisionCircles(entities[bullet_idx].position, entities[bullet_idx].radius,entities[target_idx].position, entities[target_idx].radius)) {
@@ -112,11 +109,13 @@ void handle_bullet_collisions(GameState *game) {
                     game->player_score++;
                     PlaySound(PlayerWinSFX);
                     restart_game(game);
+                    return;
                 }
                 if (entities[bullet_idx].owner == CPU && entities[target_idx].type == PLAYER) {
                     game->cpu_score++;
                     PlaySound(PlayerLoseSFX);
                     restart_game(game);
+                    return;
                 }
                 if (entities[target_idx].behaviour == DESTROY_BULLET_ONLY) {
                     PlaySound(BallHitSFX);
@@ -130,37 +129,6 @@ void handle_bullet_collisions(GameState *game) {
         }
     }
 }
-
-// Vector2 process_input(GameState *game) {
-//     const Vector2 up    = { 0, -1 };
-//     const Vector2 down  = { 0,  1 };
-//     const Vector2 left  = { -1, 0 };
-//     const Vector2 right = { 1,  0 };
-
-//     Vector2 dir = Vector2Zero();
-
-//     if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) dir = Vector2Add(dir, up);
-//     if (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) dir = Vector2Add(dir, down);
-//     if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) dir = Vector2Add(dir, left);
-//     if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) dir = Vector2Add(dir, right);
-//     if (IsKeyPressed(KEY_R)) restart_game(game);
-//     if (IsKeyPressed(KEY_SPACE)) spawn_bullet(&((game->entities)[0]), game->entities, game->entities_qty);
-
-//     if (IsGamepadAvailable(0)) {
-//         if (IsGamepadButtonPressed(0, 8)) restart_game(game);
-//         if (IsGamepadButtonPressed(0, 7)) spawn_bullet(&((game->entities)[0]), game->entities, game->entities_qty);
-
-//         float axisX = GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X);
-//         float axisY = GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y);
-
-//         if (fabsf(axisX) > 0.1f || fabsf(axisY) > 0.1f) {
-//             dir = (Vector2){ axisX, axisY };
-//     }
-//     }
-
-//     return Vector2Normalize(dir);
-// }
-
 
 Vector2 process_input(GameState *game, InputPacket input) {
     const Vector2 up    = { 0, -1 };

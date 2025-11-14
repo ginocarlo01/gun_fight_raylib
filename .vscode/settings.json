@@ -21,6 +21,7 @@
 		"stdint.h": "c",
 		"audio.h": "c",
 		"game_settings.h": "c",
-		"game_logic.h": "c"
+		"game_logic.h": "c",
+		"entities.h": "c"
 	}
 }

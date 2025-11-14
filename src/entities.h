@@ -11,5 +11,6 @@ extern const Entity DefaultBulletOfCPU;
 extern const Entity ObstacleDestroyBullet;
 extern const Entity ObstacleDamageOwner;
 extern const Entity ObstaclesOrder[];
+extern const int ObstaclesOrderSize;
 
 #endif
