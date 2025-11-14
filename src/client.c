@@ -29,7 +29,7 @@ int main() {
 
         sendto(sock, &input, sizeof(input), 0,(struct sockaddr *)&serverAddr, sizeof(serverAddr));
 
-        ssize_t bytes = recvfrom(sock, &state, sizeof(state),MSG_DONTWAIT, NULL, NULL);
+        recvfrom(sock, &state, sizeof(state),MSG_DONTWAIT, NULL, NULL);
 
         // --- DRAW ---
         BeginDrawing();

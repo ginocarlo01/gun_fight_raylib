@@ -10,11 +10,10 @@
 
 const size_t OBSTACLES_QTY = 4;
 
-void update_entity(Entity *entity){
+void update_entity(Entity *entity, float delta_time){
     if(!entity->enabled) return;
-    float delta_time = GetFrameTime();
     entity->position = Vector2Add(entity->position, Vector2Scale(entity->direction, delta_time * entity->speed));
-
+    
     switch (entity->type)
     {
     case OBSTACLE:

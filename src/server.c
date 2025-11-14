@@ -94,26 +94,21 @@ int main() {
         if (now - last < tick)
             continue;
 
-        last = now;
 
+        last = now;
         // --- PROCESS INPUT ---
-        for (int i = 0; i < 2; i++) {
-            Entity *p = &state.entities[i];
-            p->direction = process_input(&state, inputs[i]);
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            state.entities[i].direction = process_input(&state, inputs[i]);
         }
 
         // --- UPDATE ENTITIES ---
-        for (int i = 0; i < state.entities_qty; i++)
-            update_entity(&state.entities[i]);
+        for (int i = 0; i < state.entities_qty; i++) update_entity(&state.entities[i], tick);
 
         handle_bullet_collisions(&state);
 
         // --- SEND STATE ---
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            if (clients[i].sin_port != 0) {
-                sendto(sock, &state, sizeof(state), 0,
-                       (struct sockaddr*)&clients[i], addrLen);
-            }
+            if (clients[i].sin_port != 0) sendto(sock, &state, sizeof(state), 0,(struct sockaddr*)&clients[i], addrLen);
         }
     }
 
