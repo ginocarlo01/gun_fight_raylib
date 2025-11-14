@@ -46,32 +46,44 @@ void draw_entity(Entity entity){
     DrawCircle(entity.position.x, entity.position.y, entity.radius, entity.color);
 }
 
-void spawn_bullet(Entity *entity, Entity *entities, int entities_qty){
+void spawn_bullet(Entity *entity, GameState *game_state){
     if(entity->ammo <= 0) return;
-    for(int i = entities_qty-1; i >= 0; i--){
-        if(entities[i].owner != entity->type) continue;
-        if(entities[i].position.x != 0 && entities[i].position.y != 0) continue;
-        if(entities[i].enabled) continue;
-        entities[i].enabled = true;
-        entities[i].position = (Vector2){entity->position.x + (entity->radius + 10) * (entity->type == PLAYER ? 1 : -1), entity->position.y};
-        entities[i].direction.x = (entity->type == PLAYER ? 1 : -1);
+    for(int i = game_state->entities_qty-1; i >= 0; i--){
+        if(game_state->entities[i].owner != entity->type) continue;
+        if(game_state->entities[i].position.x != 0 && game_state->entities[i].position.y != 0) continue;
+        if(game_state->entities[i].enabled) continue;
+        game_state->entities[i].enabled = true;
+        game_state->entities[i].position = (Vector2){entity->position.x + (entity->radius + 10) * (entity->type == PLAYER ? 1 : -1), entity->position.y};
+        game_state->entities[i].direction.x = (entity->type == PLAYER ? 1 : -1);
         entity->ammo--;
         return;
     }
 }
 
-void auto_spawn_bullet(Entity *entity, Entity *entities, int entities_qty){
+void collect_ammo(Entity *entity, GameState *game_state){
+    for(int i = game_state->entities_qty-1; i >= ObstaclesOrderSize; i--){
+        if(game_state->entities[i].owner != entity->type) continue;
+        if(game_state->entities[i].enabled) continue;
+        if(game_state->entities[i].position.x != 0 && game_state->entities[i].position.y != 0){
+            game_state->entities[i].position = Vector2Zero();
+            entity->ammo++;
+            return;
+        }
+    }
+}
+
+void auto_spawn_bullet(Entity *entity, GameState *game_state){
     static float recharge_time_counter = 0;
     recharge_time_counter += GetFrameTime();
     if(recharge_time_counter > entity->recharge_time) {
-        spawn_bullet(entity, entities, entities_qty);
+        spawn_bullet(entity, game_state);
         recharge_time_counter = 0;
     }
 }
 
-void restart_game(GameState *game) {
-    game->entities[0] = DefaultPlayer;
-    game->entities[1] = DefaultCPU;
+void restart_game(GameState *game_state) {
+    game_state->entities[0] = DefaultPlayer;
+    game_state->entities[1] = DefaultCPU;
 
     float start_pct = ScreenLimitPlayer * 0.01f;
     float end_pct = ScreenLimitCPU * 0.01f;
@@ -80,24 +92,24 @@ void restart_game(GameState *game) {
 
     for (int k = 0; k < ObstaclesOrderSize; k++) {
         int i = 2 + k;
-        game->entities[i] = ObstaclesOrder[k];
-        game->entities[i].position = (Vector2){
+        game_state->entities[i] = ObstaclesOrder[k];
+        game_state->entities[i].position = (Vector2){
             ((start_pct + step_pct * (k + 1)) * ScreenDimensions.x),
             center_y
         };
     }
 
     int next_index = 2 + ObstaclesOrderSize;
-    for (int i = 0; i < DefaultPlayer.ammo; i++) game->entities[next_index++] = DefaultBulletOfPlayer;
-    for (int i = 0; i < DefaultCPU.ammo; i++) game->entities[next_index++] = DefaultBulletOfCPU;
+    for (int i = 0; i < DefaultPlayer.ammo; i++) game_state->entities[next_index++] = DefaultBulletOfPlayer;
+    for (int i = 0; i < DefaultCPU.ammo; i++) game_state->entities[next_index++] = DefaultBulletOfCPU;
 
-    game->entities_qty = next_index;
+    game_state->entities_qty = next_index;
 }
 
-void handle_bullet_collisions(GameState *game) {
-    Entity *entities = game->entities;
+void handle_bullet_collisions(GameState *game_state) {
+    Entity *entities = game_state->entities;
 
-    for (int bullet_idx = 2 + ObstaclesOrderSize; bullet_idx < game->entities_qty; bullet_idx++) {
+    for (int bullet_idx = 2 + ObstaclesOrderSize; bullet_idx < game_state->entities_qty; bullet_idx++) {
         if (!entities[bullet_idx].enabled) continue;
 
         for (int target_idx = 0; target_idx < 2 + ObstaclesOrderSize; target_idx++) {
@@ -106,31 +118,37 @@ void handle_bullet_collisions(GameState *game) {
             if (CheckCollisionCircles(entities[bullet_idx].position, entities[bullet_idx].radius,entities[target_idx].position, entities[target_idx].radius)) {
 
                 if (entities[bullet_idx].owner == PLAYER && entities[target_idx].type == CPU) {
-                    game->player_score++;
+                    game_state->player_score++;
                     PlaySound(PlayerWinSFX);
-                    restart_game(game);
+                    restart_game(game_state);
                     return;
                 }
                 if (entities[bullet_idx].owner == CPU && entities[target_idx].type == PLAYER) {
-                    game->cpu_score++;
+                    game_state->cpu_score++;
                     PlaySound(PlayerLoseSFX);
-                    restart_game(game);
+                    restart_game(game_state);
                     return;
                 }
                 if (entities[target_idx].behaviour == DESTROY_BULLET_ONLY) {
                     PlaySound(BallHitSFX);
                     entities[bullet_idx].enabled = entities[target_idx].enabled = false;
                 }
+                if (entities[target_idx].behaviour == GIVE_AMMO_OWNER) {
+                    PlaySound(BallHitSFX);
+                    collect_ammo(entities[bullet_idx].owner == PLAYER ? &game_state->entities[0] : &game_state->entities[1],game_state);
+                    entities[bullet_idx].enabled = entities[target_idx].enabled = false;
+                }
+
                 if (entities[target_idx].behaviour == DAMAGE_OWNER) {
-                    (entities[bullet_idx].owner == PLAYER ? game->cpu_score++ : game->player_score++);
-                    restart_game(game);
+                    (entities[bullet_idx].owner == PLAYER ? game_state->cpu_score++ : game_state->player_score++);
+                    restart_game(game_state);
                 }
             }
         }
     }
 }
 
-Vector2 process_input(EntityType entity_type, GameState *game, InputPacket input) {
+Vector2 process_input(EntityType entity_type, GameState *game_state, InputPacket input) {
     const Vector2 up    = { 0, -1 };
     const Vector2 down  = { 0,  1 };
     const Vector2 left  = { -1, 0 };
@@ -143,7 +161,7 @@ Vector2 process_input(EntityType entity_type, GameState *game, InputPacket input
     if (input.left)  dir = Vector2Add(dir, left);
     if (input.right) dir = Vector2Add(dir, right);
 
-    if (input.shoot) spawn_bullet(&((game->entities)[entity_type == PLAYER ? 0 : 1]), game->entities, game->entities_qty);
+    if (input.shoot) spawn_bullet(&((game_state->entities)[entity_type == PLAYER ? 0 : 1]), game_state);
 
     return Vector2Normalize(dir);
 }

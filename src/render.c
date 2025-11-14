@@ -71,7 +71,9 @@ void draw_entities(const GameState *game_state) {
         //DrawCircleV(e.position, e.radius, e.color);
     }
 
-    for (int i = 0; i < game_state->entities[0].ammo; i++) {
-            DrawTexture(BulletTexture, i * BulletTexture.width, ScreenDimensions.y - BulletTexture.height, WHITE);
-    }
+    for (int i = 0; i < game_state->entities[0].ammo; i++) 
+        DrawTexture(BulletTexture, i * BulletTexture.width, ScreenDimensions.y - BulletTexture.height, WHITE);
+    
+    for (int i = 0; i < game_state->entities[1].ammo; i++) 
+        DrawTexture(BulletTexture, ScreenDimensions.x - BulletTexture.width - i * BulletTexture.width, ScreenDimensions.y - BulletTexture.height, WHITE);
 }

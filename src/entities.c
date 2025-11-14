@@ -54,15 +54,25 @@ const Entity ObstacleDamageOwner = {
     .behaviour = DAMAGE_OWNER,
     .direction = { 0, 1 },
     .color = RED,
+    .speed = 50,
+    .radius = 15,
+    .enabled = true
+};
+
+const Entity ObstacleGiveAmmoOwner = {
+    .type = OBSTACLE,
+    .behaviour = GIVE_AMMO_OWNER,
+    .direction = { 0, 1 },
+    .color = GREEN,
     .speed = 200,
     .radius = 15,
     .enabled = true
 };
 
 const Entity ObstaclesOrder[] = {
-    ObstacleDestroyBullet,
-    ObstacleDestroyBullet,
-    ObstacleDestroyBullet,
+    ObstacleGiveAmmoOwner,
+    ObstacleDamageOwner,
+    ObstacleGiveAmmoOwner,
     ObstacleDestroyBullet
 };
 
