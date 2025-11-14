@@ -4,6 +4,8 @@
 #include "types.h"
 #include <raylib.h>
 
+#define SERVER_PORT 2000
+
 extern const Vec2 ScreenDimensions;
 extern const u8 TargetFPS;
 extern const Color BackgroundColor;
