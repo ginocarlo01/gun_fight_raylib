@@ -11,13 +11,6 @@
 const size_t OBSTACLES_QTY = 4;
 const float DEADZONE = 0.2f;
 
-typedef struct {
-    Entity entities[64]; 
-    int entities_qty;
-    u8 player_score;
-    u8 cpu_score;
-} GameState;
-
 void update_entity(Entity *entity){
     if(!entity->enabled) return;
     float delta_time = GetFrameTime();
@@ -107,7 +100,6 @@ void restart_game(GameState *game) {
     game->entities_qty = next_index;
 }
 
-
 void handle_bullet_collisions(GameState *game) {
     Entity *entities = game->entities;
 
@@ -142,7 +134,7 @@ void handle_bullet_collisions(GameState *game) {
     }
 }
 
-Vector2 get_player_input() {
+Vector2 get_player_input(GameState *game) {
     const Vector2 up    = { 0, -1 };
     const Vector2 down  = { 0,  1 };
     const Vector2 left  = { -1, 0 };
@@ -154,8 +146,13 @@ Vector2 get_player_input() {
     if (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) dir = Vector2Add(dir, down);
     if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) dir = Vector2Add(dir, left);
     if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) dir = Vector2Add(dir, right);
+    if (IsKeyPressed(KEY_R)) restart_game(game);
+    if (IsKeyPressed(KEY_SPACE)) spawn_bullet(&((game->entities)[0]), game->entities, game->entities_qty);
 
     if (IsGamepadAvailable(0)) {
+        if (IsGamepadButtonPressed(0, 8)) restart_game(game);
+        if (IsGamepadButtonPressed(0, 7)) spawn_bullet(&((game->entities)[0]), game->entities, game->entities_qty);
+
         float axisX = GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X);
         float axisY = GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y);
 
@@ -182,13 +179,8 @@ int main(){
     
     while (!WindowShouldClose()) {
         // //INPUT
-        player->direction = get_player_input();
-        if (IsKeyPressed(KEY_R)) restart_game(&game);
-        if (IsKeyPressed(KEY_SPACE)) spawn_bullet(player, game.entities, game.entities_qty);
-        if (IsGamepadAvailable(0)) {
-            if (IsGamepadButtonPressed(0, 8)) restart_game(&game);
-            if (IsGamepadButtonPressed(0, 7)) spawn_bullet(player, game.entities, game.entities_qty);
-        }
+        player->direction = get_player_input(&game);
+        
 
         //UPDATE
         auto_spawn_bullet(cpu, game.entities, game.entities_qty);
