@@ -111,11 +111,13 @@ void handle_bullet_collisions(GameState *game) {
                     game->player_score++;
                     PlaySound(PlayerWinSFX);
                     restart_game(game);
+                    return;
                 }
                 if (entities[bullet_idx].owner == CPU && entities[target_idx].type == PLAYER) {
                     game->cpu_score++;
                     PlaySound(PlayerLoseSFX);
                     restart_game(game);
+                    return;
                 }
                 if (entities[target_idx].behaviour == DESTROY_BULLET_ONLY) {
                     PlaySound(BallHitSFX);
@@ -129,37 +131,6 @@ void handle_bullet_collisions(GameState *game) {
         }
     }
 }
-
-// Vector2 process_input(GameState *game) {
-//     const Vector2 up    = { 0, -1 };
-//     const Vector2 down  = { 0,  1 };
-//     const Vector2 left  = { -1, 0 };
-//     const Vector2 right = { 1,  0 };
-
-//     Vector2 dir = Vector2Zero();
-
-//     if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) dir = Vector2Add(dir, up);
-//     if (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) dir = Vector2Add(dir, down);
-//     if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) dir = Vector2Add(dir, left);
-//     if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) dir = Vector2Add(dir, right);
-//     if (IsKeyPressed(KEY_R)) restart_game(game);
-//     if (IsKeyPressed(KEY_SPACE)) spawn_bullet(&((game->entities)[0]), game->entities, game->entities_qty);
-
-//     if (IsGamepadAvailable(0)) {
-//         if (IsGamepadButtonPressed(0, 8)) restart_game(game);
-//         if (IsGamepadButtonPressed(0, 7)) spawn_bullet(&((game->entities)[0]), game->entities, game->entities_qty);
-
-//         float axisX = GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X);
-//         float axisY = GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y);
-
-//         if (fabsf(axisX) > 0.1f || fabsf(axisY) > 0.1f) {
-//             dir = (Vector2){ axisX, axisY };
-//     }
-//     }
-
-//     return Vector2Normalize(dir);
-// }
-
 
 Vector2 process_input(GameState *game, InputPacket input) {
     const Vector2 up    = { 0, -1 };
