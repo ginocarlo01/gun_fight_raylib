@@ -3,6 +3,7 @@
 #include "audio.h"
 #include "game_settings.h"
 #include "game_logic.h"
+#include "render.h"
 #include "entities.h"
 #include "input.h"
 #include <stdio.h>
@@ -38,7 +39,7 @@ int main(){
         // --- DRAW ---
         BeginDrawing();
         ClearBackground(BackgroundColor);
-        for (int i = 0; i < game.entities_qty; i++) draw_entity(game.entities[i]);
+        draw_entities(&game);
 
         // --- DEBUG ---
         DrawText(TextFormat("FPS: %i", GetFPS()), 10, 30, 20, GREEN);
