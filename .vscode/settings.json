@@ -19,6 +19,8 @@
 		"config.h": "c",
 		"stdio.h": "c",
 		"stdint.h": "c",
-		"audio.h": "c"
+		"audio.h": "c",
+		"game_settings.h": "c",
+		"game_logic.h": "c"
 	}
 }
