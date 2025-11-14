@@ -1,12 +1,16 @@
 #include "render.h"
 #include "types.h"
+#include "game_settings.h"
 #include <stdio.h>
+
+
 const char*  PlayerTexturePath = "assets/player.png";
 const char*  CPUTexturePath = "assets/enemy.png";
 const char*  BulletTexturePath = "assets/bullet.png"; 
 const char*  DefaultObstacleTexturePath = "assets/default_object.png";
 const char*  BadObstacleTexturePath = "assets/bad_object.png";
 const char*  GoodObstacleTexturePath = "assets/life_object.png";
+const char*  HeartTexturePath = "assets/heart.png";;
 
 Texture2D PlayerTexture;
 Texture2D CPUTexture;
@@ -30,9 +34,7 @@ void init_textures() {
     // printf("[render] DefaultObstacleTexture: %d x %d\n", DefaultObstacleTexture.width, DefaultObstacleTexture.height);
     // printf("[render] BadObstacleTexture: %d x %d\n", BadObstacleTexture.width, BadObstacleTexture.height);
     // printf("[render] GoodObstacleTexture: %d x %d\n", GoodObstacleTexture.width, GoodObstacleTexture.height);
-
 }
-
 
 void unload_textures() {
     UnloadTexture(PlayerTexture);
@@ -69,4 +71,7 @@ void draw_entities(const GameState *game_state) {
         //DrawCircleV(e.position, e.radius, e.color);
     }
 
+    for (int i = 0; i < game_state->entities[0].ammo; i++) {
+            DrawTexture(BulletTexture, i * BulletTexture.width, ScreenDimensions.y - BulletTexture.height, WHITE);
+    }
 }
