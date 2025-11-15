@@ -57,9 +57,7 @@ void draw_entities(const GameState *game_state) {
             case OBSTACLE:
                 switch (e.behaviour) {
                     case DESTROY_BULLET_ONLY: tex = DefaultObstacleTexture; break;
-
                     case DAMAGE_OWNER: tex = BadObstacleTexture; break;
-
                     case GIVE_AMMO_OWNER: tex = GoodObstacleTexture; break;
                 }
                 break;

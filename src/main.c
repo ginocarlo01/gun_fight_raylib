@@ -32,6 +32,7 @@ int main(){
         player->direction = process_input(player->type, &game_state, input);
 
         // UPDATE
+        check_end_of_match(&game_state);
         auto_spawn_bullet(cpu, &game_state);
         for (int i = 0; i < game_state.entities_qty; i++) update_entity(&game_state.entities[i], GetFrameTime());
         handle_bullet_collisions(&game_state);

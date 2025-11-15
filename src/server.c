@@ -30,7 +30,7 @@ int main() {
     }
 
     // Game Settings
-    GameState state = {0};
+    GameState game_state = {0};
     InputPacket inputs[MAX_PLAYERS_ONLINE_MODE] = {0};
     double tick = 1.0 / TargetFPS;
     double last = GetTime();
@@ -67,9 +67,9 @@ int main() {
                 // when both player connect, start the game
                 if (clients[0].sin_port != 0 && clients[1].sin_port != 0 && !game_started) {
                     printf("Starting game\n");
-                    restart_game(&state);
-                    state.player_score = 0;
-                    state.cpu_score = 0;
+                    restart_game(&game_state);
+                    game_state.player_score = 0;
+                    game_state.cpu_score = 0;
                     game_started = true;
                 }
             }
@@ -87,15 +87,15 @@ int main() {
         last = now;
 
         for (int i = 0; i < MAX_PLAYERS_ONLINE_MODE; i++) {
-            state.entities[i].direction = process_input(i == 0? PLAYER : CPU, &state, inputs[i]);
+            game_state.entities[i].direction = process_input(i == 0? PLAYER : CPU, &game_state, inputs[i]);
         }
 
-        for (int i = 0; i < state.entities_qty; i++) update_entity(&state.entities[i], tick);
-
-        handle_bullet_collisions(&state);
+        check_end_of_match(&game_state);
+        for (int i = 0; i < game_state.entities_qty; i++) update_entity(&game_state.entities[i], tick);
+        handle_bullet_collisions(&game_state);
 
         for (int i = 0; i < MAX_PLAYERS_ONLINE_MODE; i++) {
-            if (clients[i].sin_port != 0) sendto(sock, &state, sizeof(state), 0,(struct sockaddr*)&clients[i], addrLen);
+            if (clients[i].sin_port != 0) sendto(sock, &game_state, sizeof(game_state), 0,(struct sockaddr*)&clients[i], addrLen);
         }
     }
 

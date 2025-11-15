@@ -106,6 +106,10 @@ void restart_game(GameState *game_state) {
     game_state->entities_qty = next_index;
 }
 
+void check_end_of_match(GameState *game_state){
+    if(game_state->entities[0].ammo == 0 && game_state->entities[1].ammo == 0 ) restart_game(game_state);
+}
+
 void handle_bullet_collisions(GameState *game_state) {
     Entity *entities = game_state->entities;
 
