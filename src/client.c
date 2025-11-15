@@ -15,6 +15,7 @@ int main() {
     InitWindow(ScreenDimensions.x, ScreenDimensions.y, "Gun Fight Client");
     SetTargetFPS(TargetFPS);
     init_audio();
+    init_textures();
 
     // Network Settings 
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -43,7 +44,7 @@ int main() {
 
         EndDrawing();
     }
-
+    unload_textures();
     close_audio();
     CloseWindow();
     close(sock);
