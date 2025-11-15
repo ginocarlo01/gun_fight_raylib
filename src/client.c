@@ -16,7 +16,7 @@ int main() {
     SetTargetFPS(TargetFPS);
     init_audio();
 
-    // Network Settings using 
+    // Network Settings 
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
     struct sockaddr_in serverAddr;
     serverAddr.sin_family = AF_INET;

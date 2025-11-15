@@ -17,9 +17,9 @@ const Entity DefaultCPU = {
     .direction = { 1, 1 },
     .color = RED,
     .speed = 150,
-    .radius = 30,
+    .radius = 20,
     .ammo = 5,
-    .recharge_time = 1,
+    .recharge_time = 3,
     .enabled = true
 };
 
@@ -54,6 +54,16 @@ const Entity ObstacleDamageOwner = {
     .behaviour = DAMAGE_OWNER,
     .direction = { 0, 1 },
     .color = RED,
+    .speed = 50,
+    .radius = 15,
+    .enabled = true
+};
+
+const Entity ObstacleGiveAmmoOwner = {
+    .type = OBSTACLE,
+    .behaviour = GIVE_AMMO_OWNER,
+    .direction = { 0, 1 },
+    .color = GREEN,
     .speed = 200,
     .radius = 15,
     .enabled = true
@@ -61,8 +71,11 @@ const Entity ObstacleDamageOwner = {
 
 const Entity ObstaclesOrder[] = {
     ObstacleDestroyBullet,
+    ObstacleGiveAmmoOwner,
     ObstacleDestroyBullet,
-    ObstacleDestroyBullet,
+    ObstacleDamageOwner,
+    ObstacleDamageOwner,
+    ObstacleGiveAmmoOwner,
     ObstacleDestroyBullet
 };
 
