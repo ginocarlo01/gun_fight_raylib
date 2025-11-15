@@ -93,9 +93,10 @@ void restart_game(GameState *game_state) {
     for (int k = 0; k < ObstaclesOrderSize; k++) {
         int i = 2 + k;
         game_state->entities[i] = ObstaclesOrder[k];
+        game_state->entities[i].speed = game_state->entities[i].speed * 0.2 + rand() % (int)(game_state->entities[i].speed);
         game_state->entities[i].position = (Vector2){
             ((start_pct + step_pct * (k + 1)) * ScreenDimensions.x),
-            center_y
+            game_state->entities[i].radius + rand() % (int)(center_y - game_state->entities[i].radius)
         };
     }
 

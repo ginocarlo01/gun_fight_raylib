@@ -19,7 +19,7 @@ const Entity DefaultCPU = {
     .speed = 150,
     .radius = 20,
     .ammo = 5,
-    .recharge_time = 1,
+    .recharge_time = 3,
     .enabled = true
 };
 
@@ -70,7 +70,10 @@ const Entity ObstacleGiveAmmoOwner = {
 };
 
 const Entity ObstaclesOrder[] = {
+    ObstacleDestroyBullet,
     ObstacleGiveAmmoOwner,
+    ObstacleDestroyBullet,
+    ObstacleDamageOwner,
     ObstacleDamageOwner,
     ObstacleGiveAmmoOwner,
     ObstacleDestroyBullet

@@ -10,6 +10,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <raymath.h>
+#include <time.h>
 
 int main(){
     SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_UNDECORATED);
@@ -17,6 +18,7 @@ int main(){
     SetTargetFPS(TargetFPS);
     init_audio();
     init_textures();
+    srand((unsigned int) clock());
 
     GameState game_state = {0};
     restart_game(&game_state);
@@ -43,10 +45,9 @@ int main(){
         draw_entities(&game_state);
 
         // DEBUG
-        DrawText(TextFormat("FPS: %i", GetFPS()), 10, 30, 20, GREEN);
-        DrawText(TextFormat("Player Score: %i", game_state.player_score), 10, 50, 20, WHITE);
-        DrawText(TextFormat("CPU Score: %i", game_state.cpu_score), 10, 70, 20, WHITE);
-        // DrawText(TextFormat("Player Ammo: %i", player->ammo), 10, 90, 20, WHITE);
+        //DrawText(TextFormat("FPS: %i", GetFPS()), 10, 30, 20, GREEN);
+        DrawText(TextFormat("Score: %i", game_state.player_score), 10, ScreenDimensions.y - 70, 20, BLUE);
+        DrawText(TextFormat("Score: %i", game_state.cpu_score), ScreenDimensions.x - 100, ScreenDimensions.y - 70, 20, RED);
 
         EndDrawing();
     }

@@ -8,12 +8,14 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 
 int main() {
     // Raylib Settings
     SetConfigFlags(FLAG_WINDOW_HIDDEN);
     InitWindow(800, 450, "");
     SetTargetFPS(TargetFPS);
+    srand((unsigned int) clock());
 
     // Network Settings
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
